@@ -54,10 +54,6 @@ terminal = "st -e zsh"
 editor = os.getenv("EDITOR") or "vim"
 editor_cmd = terminal .. " -c " .. editor
 
-function open_editor()
-
-end
-
 -- Default modkey.
 -- Usually, Mod4 is the key with a logo between Control and Alt.
 -- If you do not like this or do not have such a key,
@@ -89,15 +85,16 @@ awful.layout.layouts = {
 -- {{{ Menu
 -- Create a launcher widget and a main menu
 myawesomemenu = {
-   { "hotkeys", function() hotkeys_popup.show_help(nil, awful.screen.focused()) end },
-   { "edit config", "st -e tmux new-session \\; send-keys '" .. editor .. ' ' .. awesome.conffile .. "' C-m \\;" },
+   { "config", "st -e tmux new-session \\; send-keys '" .. editor .. ' ' .. awesome.conffile .. "; exit' C-m \\;" },
    { "restart", awesome.restart },
    { "quit", function() awesome.quit() end },
 }
 
 mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
-                                    { "terminal", terminal }
-                                  }
+                                    { "terminal", terminal },
+                                    { "wallpaper", "sxiv /home/mahmooz/media/images/wal/" },
+                                  },
+                          height = 1000
                         })
 
 mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
@@ -226,6 +223,7 @@ end)
 
 -- {{{ Mouse bindings
 root.buttons(gears.table.join(
+    awful.button({ }, 1, function () mymainmenu:hide() end),
     awful.button({ }, 3, function () mymainmenu:toggle() end),
     awful.button({ }, 4, awful.tag.viewnext),
     awful.button({ }, 5, awful.tag.viewprev)
@@ -272,6 +270,10 @@ globalkeys = gears.table.join(
               {description = "show main menu", group = "awesome"}),
 
     -- Layout manipulation
+    awful.key({ modkey, "Control"   }, "l",     function () awful.tag.incmwfact( 0.05)          end,
+              {description = "increase master width factor", group = "layout"}),
+    awful.key({ modkey, "Control"   }, "h",     function () awful.tag.incmwfact(-0.05)          end,
+              {description = "decrease master width factor", group = "layout"}),
     awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end,
               {description = "swap with next client by index", group = "client"}),
     awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end,
@@ -354,9 +356,9 @@ clientkeys = gears.table.join(
             c:raise()
         end,
         {description = "toggle fullscreen", group = "client"}),
-    awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end,
+    awful.key({ modkey,           }, "q",      function (c) c:kill()                         end,
               {description = "close", group = "client"}),
-    awful.key({ modkey, "Shift" }, "space",  awful.client.floating.toggle                     ,
+    awful.key({ modkey, "Shift"   }, "space",  awful.client.floating.toggle                     ,
               {description = "toggle floating", group = "client"}),
     awful.key({ modkey, "Control" }, "Return", function (c) c:swap(awful.client.getmaster()) end,
               {description = "move to master", group = "client"}),
