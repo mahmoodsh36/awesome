@@ -50,9 +50,8 @@ themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
 beautiful.init(themes_dir .. used_theme .. '/theme.lua')
 
 -- This is used later as the default terminal and editor to run.
-terminal = "st -e zsh"
+terminal = "st -e tmux"
 editor = os.getenv("EDITOR") or "vim"
-editor_cmd = terminal .. " -c " .. editor
 
 -- Default modkey.
 -- Usually, Mod4 is the key with a logo between Control and Alt.
@@ -90,14 +89,37 @@ myawesomemenu = {
    { "quit", function() awesome.quit() end },
 }
 
-mymainmenu = awful.menu({ items = { { "awesome", myawesomemenu, beautiful.awesome_icon },
+function toffeesubmenu()
+    directory='/home/mahmooz/media/images/toffee/'
+    menu = {
+        { "new", 'sh -c \'find ~/media/reddit/ -exec file --mime-type {} \\; | grep image/ | rev | cut -d ":" -f2- | rev | xargs sxiv\'' }
+    }
+    local popen = io.popen
+    local pfile = popen('sh -c \'cd ' .. directory .. '; find . -maxdepth 1 -mindepth 1 -type d | sed "s,^./,,"\'')
+    for filename in pfile:lines() do
+        command = 'sh -c \'find ' .. directory .. filename .. ' -type f -exec file --mime-type {} \\; | grep image/ | rev | cut -d ":" -f2- | rev | xargs sxiv\''
+        table.insert(menu, {filename, command})
+    end
+    pfile:close()
+    return menu
+end
+
+appsubmenu = {
+   { "spotify", 'sh -c \'notify-send "launched spotify" && spotify\'' },
+   { "firefox", 'sh -c \'notify-send "launched firefox" && firefox\'' },
+   { "thunar", 'sh -c \'notify-send "launched thunar"; thunar\'' },
+}
+
+mymainmenu = awful.menu({ items = { { "awesomewm", myawesomemenu, },--beautiful.awesome_icon },
                                     { "terminal", terminal },
+                                    { "apps", appsubmenu },
+                                    { "toffee", toffeesubmenu() },
                                     { "wallpaper", "sxiv /home/mahmooz/media/images/wal/" },
+                                    { "reset wallpaper", function() os.execute("hsetroot -fill /home/mahmooz/.cache/wallpaper") end },
                                   },
-                          height = 1000
                         })
 
-mylauncher = awful.widget.launcher({ image = beautiful.awesome_icon,
+mylauncher = awful.widget.launcher({-- image = beautiful.awesome_icon,
                                      menu = mymainmenu })
 
 -- Menubar configuration
