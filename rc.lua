@@ -113,7 +113,7 @@ appsubmenu = {
 mymainmenu = awful.menu({ items = { { "awesomewm", myawesomemenu, },--beautiful.awesome_icon },
                                     { "terminal", terminal },
                                     { "apps", appsubmenu },
-                                    { "toffee", toffeesubmenu() },
+                                    -- { "toffee", toffeesubmenu() },
                                     { "wallpaper", "sxiv /home/mahmooz/media/images/wal/" },
                                     { "reset wallpaper", function() os.execute("hsetroot -fill /home/mahmooz/.cache/wallpaper") end },
                                   },
