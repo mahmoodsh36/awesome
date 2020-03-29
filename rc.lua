@@ -62,7 +62,7 @@ modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
-    awful.layout.suit.floating,
+    awful.layout.suit.tile,
     awful.layout.suit.tile,
     --awful.layout.suit.tile.left,
     --awful.layout.suit.tile.bottom,
@@ -222,6 +222,18 @@ awful.screen.connect_for_each_screen(function(s)
     -- Create the wibox
     s.mywibox = awful.wibar({ position = "top", screen = s })
 
+    s.test = wibox.widget {
+        markup = 'This <i>is</i> a <b>textbox</b>!!!',
+        align  = 'center',
+        valign = 'center',
+        widget = wibox.widget.textbox
+    }
+
+    s.status = awful.widget.watch('statusbar.sh', 1,
+        function(widget, stdout)
+            widget.markup = stdout
+        end)
+
     -- Add widgets to the wibox
     s.mywibox:setup {
         layout = wibox.layout.align.horizontal,
@@ -234,9 +246,10 @@ awful.screen.connect_for_each_screen(function(s)
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
-            mykeyboardlayout,
+            s.status,
+            --mykeyboardlayout,
             wibox.widget.systray(),
-            mytextclock,
+            --mytextclock,
             s.mylayoutbox,
         },
     }
@@ -532,7 +545,7 @@ awful.rules.rules = {
 
     -- Add titlebars to normal clients and dialogs
     { rule_any = {type = { "normal", "dialog" }
-      }, properties = { titlebars_enabled = true }
+      }, properties = { titlebars_enabled = false }
     },
 
     -- Set Firefox to always map on the tag named "2" on screen 1.
