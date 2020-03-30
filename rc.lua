@@ -220,22 +220,16 @@ awful.screen.connect_for_each_screen(function(s)
     }
 
     -- Create the wibox
-    s.mywibox = awful.wibar({ position = "top", screen = s })
-
-    s.test = wibox.widget {
-        markup = 'This <i>is</i> a <b>textbox</b>!!!',
-        align  = 'center',
-        valign = 'center',
-        widget = wibox.widget.textbox
-    }
+    s.topbar = awful.wibar({ position = "top", screen = s })
+    --s.bottombar = awful.wibar({ position = 'bottom', screen = s })
 
     s.status = awful.widget.watch('statusbar.sh', 1,
         function(widget, stdout)
-            widget.markup = stdout
+            widget.text = stdout
         end)
 
     -- Add widgets to the wibox
-    s.mywibox:setup {
+    s.topbar:setup {
         layout = wibox.layout.align.horizontal,
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
