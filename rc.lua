@@ -1,7 +1,3 @@
--- If LuaRocks is installed, make sure that packages installed through it are
--- found (e.g. lgi). If LuaRocks is not installed, do nothing.
-pcall(require, "luarocks.loader")
-
 -- Standard awesome library
 local gears = require("gears")
 local awful = require("awful")
@@ -63,8 +59,7 @@ modkey = "Mod4"
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
     awful.layout.suit.tile,
-    awful.layout.suit.tile,
-    --awful.layout.suit.tile.left,
+    awful.layout.suit.floating,
     --awful.layout.suit.tile.bottom,
     --awful.layout.suit.tile.top,
     --awful.layout.suit.fair,
@@ -89,31 +84,8 @@ myawesomemenu = {
    { "quit", function() awesome.quit() end },
 }
 
-function toffeesubmenu()
-    directory='/home/mahmooz/media/images/toffee/'
-    menu = {
-        { "new", 'sh -c \'find ~/media/reddit/ -exec file --mime-type {} \\; | grep image/ | rev | cut -d ":" -f2- | rev | xargs sxiv\'' }
-    }
-    local popen = io.popen
-    local pfile = popen('sh -c \'cd ' .. directory .. '; find . -maxdepth 1 -mindepth 1 -type d | sed "s,^./,,"\'')
-    for filename in pfile:lines() do
-        command = 'sh -c \'find ' .. directory .. filename .. ' -type f -exec file --mime-type {} \\; | grep image/ | rev | cut -d ":" -f2- | rev | xargs sxiv\''
-        table.insert(menu, {filename, command})
-    end
-    pfile:close()
-    return menu
-end
-
-appsubmenu = {
-   { "spotify", 'sh -c \'notify-send "launched spotify" && spotify\'' },
-   { "firefox", 'sh -c \'notify-send "launched firefox" && firefox\'' },
-   { "thunar", 'sh -c \'notify-send "launched thunar"; thunar\'' },
-}
-
 mymainmenu = awful.menu({ items = { { "awesomewm", myawesomemenu, },--beautiful.awesome_icon },
                                     { "terminal", terminal },
-                                    { "apps", appsubmenu },
-                                    -- { "toffee", toffeesubmenu() },
                                     { "wallpaper", "sxiv /home/mahmooz/media/images/wal/" },
                                     { "reset wallpaper", function() os.execute("hsetroot -fill /home/mahmooz/.cache/wallpaper") end },
                                   },
