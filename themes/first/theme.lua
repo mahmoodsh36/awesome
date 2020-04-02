@@ -26,7 +26,7 @@ theme.border_normal = "#000000"
 theme.border_focus  = "#535d6c"
 theme.border_marked = "#91231c"
 
-theme.menu_font = 'Source Code Pro 16'
+theme.menu_font = 'Source Code Pro 15'
 
 -- There are other variable sets
 -- overriding the default one when
