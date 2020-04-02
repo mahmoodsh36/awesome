@@ -192,7 +192,7 @@ awful.screen.connect_for_each_screen(function(s)
     }
 
     -- Create the wibox
-    s.topbar = awful.wibar({ position = "top", screen = s })
+    s.topbar = awful.wibar({ position = "top", screen = s, height = 27 })
     --s.bottombar = awful.wibar({ position = 'bottom', screen = s })
 
     s.status = awful.widget.watch('statusbar.sh', 1,
@@ -584,10 +584,3 @@ client.connect_signal("focus", function(c) c.border_color = beautiful.border_foc
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}
 --
-client.connect_signal("property::floating", function(c)
-    if c.floating then
-        awful.titlebar.show(c)
-    else
-        awful.titlebar.hide(c)
-    end
-end)
