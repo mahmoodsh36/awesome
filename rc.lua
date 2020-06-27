@@ -58,8 +58,8 @@ modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
-    awful.layout.suit.floating,
     awful.layout.suit.tile,
+    awful.layout.suit.floating,
     --awful.layout.suit.tile.bottom,
     --awful.layout.suit.tile.top,
     --awful.layout.suit.fair,
@@ -86,7 +86,7 @@ myawesomemenu = {
 
 mymainmenu = awful.menu({ items = { { "awesomewm", myawesomemenu, },--beautiful.awesome_icon },
                                     { "terminal", terminal },
-                                    { "wallpaper", "sxiv /home/mahmooz/media/images/wal/" },
+                                    { "wallpaper", "sxiv /home/mahmooz/data/images/wal/" },
                                     { "reset wallpaper", function() os.execute("hsetroot -fill /home/mahmooz/.cache/wallpaper") end },
                                   },
                         })
