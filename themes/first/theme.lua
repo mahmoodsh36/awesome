@@ -7,7 +7,7 @@ local themes_path = gfs.get_themes_dir()
 
 local theme = {}
 
-theme.font          = "Source Code Pro 13"
+theme.font          = "Hack 13"
 
 theme.bg_normal     = "#000000"
 theme.bg_focus      = "#333333"
@@ -26,7 +26,7 @@ theme.border_normal = "#000000"
 theme.border_focus  = "#535d6c"
 theme.border_marked = "#91231c"
 
-theme.menu_font = 'Source Code Pro 15'
+theme.menu_font = 'Hack 15'
 
 -- There are other variable sets
 -- overriding the default one when
