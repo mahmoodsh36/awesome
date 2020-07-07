@@ -68,7 +68,7 @@ popup_timer = gears.timer {
                     local percentage = tonumber(out)
                     volume_popup.widget.w.pb.value = percentage / 100.0
                     volume_popup.widget.w.tb.text =
-                        'volume ' .. tostring(percentage) .. '%'
+                        '🔊 volume ' .. tostring(percentage) .. '%'
                     volume_popup.visible = true
                 end
             end
