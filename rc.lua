@@ -9,6 +9,21 @@ local beautiful = require("beautiful")
 -- Notification library
 local naughty = require("naughty")
 
+function destroy_recent_notification()
+    local notification = nil
+    for i = naughty.get_next_notification_id(), 0, -1 do
+        print(i)
+        local tmpNotification = naughty.getById(i)
+        if tmpNotification ~= nil then
+            notification = tmpNotification
+        end
+    end
+    if notification ~= nil then
+        print('destroying notification with id ' .. notification.id)
+        naughty.destroy(notification)
+    end
+end
+
 if awesome.startup_errors then
     naughty.notify({ preset = naughty.config.presets.critical,
                      title = "Oops, there were errors during startup!",
@@ -330,6 +345,9 @@ globalkeys = gears.table.join(
                     history_path = awful.util.get_cache_dir() .. "/history_eval"
                   }
               end,
+              {description = "lua execute prompt", group = "awesome"}),
+
+    awful.key({ modkey }, "d", destroy_recent_notification,
               {description = "lua execute prompt", group = "awesome"})
 )
 
