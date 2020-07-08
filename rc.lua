@@ -9,7 +9,8 @@ local beautiful = require("beautiful")
 -- Notification library
 local naughty = require("naughty")
 
-function destroy_recent_notification()
+-- function to dismiss least recent notification
+function destroy_first_notification()
     local notification = nil
     for i = naughty.get_next_notification_id(), 0, -1 do
         print(i)
@@ -347,7 +348,7 @@ globalkeys = gears.table.join(
               end,
               {description = "lua execute prompt", group = "awesome"}),
 
-    awful.key({ modkey }, "d", destroy_recent_notification,
+    awful.key({ modkey }, "d", destroy_first_notification,
               {description = "lua execute prompt", group = "awesome"})
 )
 
