@@ -43,7 +43,7 @@ end
 
 if volume_popup == nil then
    volume_popup = create_volume_popup()
-   naughty.notify({text="just created the volume popup"})
+   --naughty.notify({text="just created the volume popup"})
 end
 
 if popup_timer ~= nil then
