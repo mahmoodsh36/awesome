@@ -12,9 +12,6 @@ terminal = "st -e tmux"
 editor = os.getenv("EDITOR") or "vim"
 modkey = "Mod4"
 
-volume_popup.show()
-volume_popup.restart_timer()
-
 beautiful.init(themes_dir .. used_theme .. '/theme.lua')
 
 -- function to dismiss least recent notification
