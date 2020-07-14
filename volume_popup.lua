@@ -3,6 +3,7 @@ local gears = require("gears")
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
+local theme = require('themes/first/theme')
 
 function create_volume_popup()
     return awful.popup {
@@ -11,7 +12,8 @@ function create_volume_popup()
                 {
                     text   = 'volume',
                     id     = 'tb',
-                    widget = wibox.widget.textbox
+                    widget = wibox.widget.textbox,
+                    font   = theme.font
                 },
                 {
                     bar_shape           = gears.shape.rounded_rect,
@@ -76,6 +78,7 @@ function volume_popup.restart_timer()
 end
 
 volume_popup.widget.w.s:connect_signal('property::value', function(slider)
+    volume_popup.restart_timer()
     awful.spawn('amixer set Master ' .. tostring(slider.value) .. '%')
     volume_popup.widget.w.tb.text = 
         '🔊 volume ' .. tostring(slider.value) .. '%'
