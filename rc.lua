@@ -4,12 +4,16 @@ require("awful.autofocus") -- autofocus windows when switching workspaces and su
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
+local volume_popup = require("volume_popup")
 
 used_theme = "first"
 themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
 terminal = "st -e tmux"
 editor = os.getenv("EDITOR") or "vim"
 modkey = "Mod4"
+
+volume_popup.show()
+volume_popup.restart_timer()
 
 beautiful.init(themes_dir .. used_theme .. '/theme.lua')
 
@@ -276,6 +280,17 @@ globalkeys = gears.table.join(
         {description = "reload awesome", group = "awesome"}),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit,
         {description = "quit awesome", group = "awesome"}),
+
+    awful.key({ modkey, "Mod1" }, "k", function()
+        awful.spawn('amixer set Master 3%+');
+        volume_popup.restart_timer()
+        volume_popup.show()
+    end, {description = "increase volume", group = 'volume'}),
+    awful.key({ modkey, "Mod1" }, "j", function()
+        awful.spawn('amixer set Master 3%-');
+        volume_popup.restart_timer()
+        volume_popup.show()
+    end, {description = "decrease volume", group = 'volume'}),
 
     --awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
     --{description = "increase master width factor", group = "layout"}),
