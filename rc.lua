@@ -62,7 +62,7 @@ myawesomemenu = {
 mymainmenu = awful.menu({
     items = { { "awesomewm", myawesomemenu, },
         { "terminal", terminal },
-        { "wallpaper", "sxiv /home/mahmooz/data/images/wal/" },
+        { "wallpaper", "sxiv -t /home/mahmooz/data/images/wal/" },
         { "reset wallpaper", function()
                 os.execute("hsetroot -fill /home/mahmooz/.cache/wallpaper")
         end },
@@ -163,21 +163,28 @@ awful.screen.connect_for_each_screen(function(s)
         }
 
         -- Create the wibox
-        s.topbar = awful.wibar({ position = "top", screen = s, height = 27 })
+        s.topbar = awful.wibar({position="top", screen=s, height=20})
+        s.bottombar = awful.wibar({position='bottom', screen=s, height=20})
         --s.bottombar = awful.wibar({ position = 'bottom', screen = s })
 
-        -- s.status = awful.widget.watch('statusbar.sh', 1, function(widget, stdout)
-        --     widget.text = stdout
-        -- end)
-
         spotify_widget = awful.widget.watch('current_spotify_song.sh', 1,
-        function(widget, stdout)
+        function(widget, st0out)
             widget.text = '🤘 ' .. stdout
+        end)
+
+        keyboard_layout_widget = awful.widget.watch("sh -c \"setxkbmap -query | awk '/layout/ {print $2}'\"", 1,
+        function(widget, stdout)
+            widget.text = '⌨ ' .. stdout
         end)
 
         time_widget = awful.widget.watch('date "+%H:%M:%S (%a) %d/%m/%y"', 1,
         function(widget, stdout)
             widget.text = stdout
+        end)
+
+        memory_widget = awful.widget.watch('sh -c "free -h | awk \'/Mem/ {print $3 \\"/\\" $2}\'"', 1,
+        function(widget, stdout)
+            widget.text = '💻 ' .. stdout
         end)
 
         last_tx_bytes = 0
@@ -193,6 +200,27 @@ awful.screen.connect_for_each_screen(function(s)
             last_rx_bytes = current_rx_bytes
         end)
 
+        s.bottombar:setup {
+            layout = wibox.layout.align.horizontal,
+            { -- left widgets
+                ul_traffic_widget,
+                dl_traffic_widget,
+                layout = wibox.layout.align.horizontal,
+            },
+            {
+                s.mytasklist,
+                widget = wibox.container.margin,
+                left = 10,
+                right = 10,
+            },
+            { -- right widgets
+                memory_widget,
+                create_separator(),
+                keyboard_layout_widget,
+                layout = wibox.layout.align.horizontal,
+            }
+        }
+
         -- Add widgets to the wibox
         s.topbar:setup {
             layout = wibox.layout.align.horizontal,
@@ -201,12 +229,11 @@ awful.screen.connect_for_each_screen(function(s)
                 s.mytaglist,
                 s.mypromptbox,
             },
-            s.mytasklist, -- Middle widget
+            { -- middle
+                layout = wibox.layout.fixed.horizontal,
+            },
             { -- Right widgets
                 layout = wibox.layout.fixed.horizontal,
-                ul_traffic_widget,
-                dl_traffic_widget,
-                create_separator(),
                 spotify_widget,
                 create_separator(),
                 volume_widget,
@@ -576,7 +603,7 @@ client.connect_signal("request::titlebars", function(c)
             --awful.titlebar.widget.maximizedbutton(c),
             --awful.titlebar.widget.stickybutton   (c),
             --awful.titlebar.widget.ontopbutton    (c),
-            awful.titlebar.widget.closebutton    (c),
+            awful.titlebar.widget.closebutton      (c),
             layout = wibox.layout.fixed.horizontal()
         },
         layout = wibox.layout.align.horizontal
