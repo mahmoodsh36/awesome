@@ -168,7 +168,7 @@ awful.screen.connect_for_each_screen(function(s)
         --s.bottombar = awful.wibar({ position = 'bottom', screen = s })
 
         spotify_widget = awful.widget.watch('current_spotify_song.sh', 1,
-        function(widget, st0out)
+        function(widget, stdout)
             widget.text = '🤘 ' .. stdout
         end)
 
