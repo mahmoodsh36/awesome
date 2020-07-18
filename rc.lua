@@ -4,7 +4,7 @@ require("awful.autofocus") -- autofocus windows when switching workspaces and su
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
-local volume_popup = require("volume_popup")
+local volume_widget = require("volume_widget")
 
 used_theme = "first"
 themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
@@ -13,20 +13,6 @@ editor = os.getenv("EDITOR") or "vim"
 modkey = "Mod4"
 
 beautiful.init(themes_dir .. used_theme .. '/theme.lua')
-
--- function to dismiss least recent notification
-function destroy_first_notification()
-    local notification = nil
-    for i = naughty.get_next_notification_id(), 0, -1 do
-        local tmpNotification = naughty.getById(i)
-        if tmpNotification ~= nil then
-            notification = tmpNotification
-        end
-    end
-    if notification ~= nil then
-        naughty.destroy(notification)
-    end
-end
 
 if awesome.startup_errors then
     naughty.notify({ preset = naughty.config.presets.critical,
@@ -135,7 +121,15 @@ local function set_wallpaper(s)
 end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
-screen.connect_signal("property::geometry", set_wallpaper)
+--screen.connect_signal("property::geometry", set_wallpaper)
+
+function create_separator()
+    return wibox.widget {
+        widget = wibox.widget.separator,
+        forced_width = 15,
+        orientation = 'vertical',
+    }
+end
 
 awful.screen.connect_for_each_screen(function(s)
         -- Wallpaper
@@ -172,8 +166,31 @@ awful.screen.connect_for_each_screen(function(s)
         s.topbar = awful.wibar({ position = "top", screen = s, height = 27 })
         --s.bottombar = awful.wibar({ position = 'bottom', screen = s })
 
-        s.status = awful.widget.watch('statusbar.sh', 1, function(widget, stdout)
+        -- s.status = awful.widget.watch('statusbar.sh', 1, function(widget, stdout)
+        --     widget.text = stdout
+        -- end)
+
+        spotify_widget = awful.widget.watch('current_spotify_song.sh', 1,
+        function(widget, stdout)
+            widget.text = '🤘 ' .. stdout
+        end)
+
+        time_widget = awful.widget.watch('date "+%H:%M:%S (%a) %d/%m/%y"', 1,
+        function(widget, stdout)
             widget.text = stdout
+        end)
+
+        last_tx_bytes = 0
+        last_rx_bytes = 0
+        dl_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/tx_bytes', 1, function(widget, stdout)
+            current_tx_bytes = tonumber(stdout)
+            widget.text = ' ⬆️ ' .. tostring(math.floor((current_tx_bytes - last_tx_bytes) / 1000)) .. 'kb/s'
+            last_tx_bytes = current_tx_bytes
+        end)
+        ul_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/rx_bytes', 1, function(widget, stdout)
+            current_rx_bytes = tonumber(stdout)
+            widget.text = '⬇️ ' .. tostring(math.floor((current_rx_bytes - last_rx_bytes) / 1000)) .. 'kb/s'
+            last_rx_bytes = current_rx_bytes
         end)
 
         -- Add widgets to the wibox
@@ -187,8 +204,17 @@ awful.screen.connect_for_each_screen(function(s)
             s.mytasklist, -- Middle widget
             { -- Right widgets
                 layout = wibox.layout.fixed.horizontal,
-                s.status,
+                ul_traffic_widget,
+                dl_traffic_widget,
+                create_separator(),
+                spotify_widget,
+                create_separator(),
+                volume_widget,
+                create_separator(),
+                time_widget,
+                create_separator(),
                 wibox.widget.systray(),
+                create_separator(),
                 s.mylayoutbox,
             },
         }
@@ -279,14 +305,10 @@ globalkeys = gears.table.join(
         {description = "quit awesome", group = "awesome"}),
 
     awful.key({ modkey, "Mod1" }, "k", function()
-        awful.spawn('amixer set Master 3%+');
-        volume_popup.restart_timer()
-        volume_popup.show()
+        volume_widget.increase_volume(3)
     end, {description = "increase volume", group = 'volume'}),
     awful.key({ modkey, "Mod1" }, "j", function()
-        awful.spawn('amixer set Master 3%-');
-        volume_popup.restart_timer()
-        volume_popup.show()
+        volume_widget.decrease_volume(3)
     end, {description = "decrease volume", group = 'volume'}),
 
     --awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
@@ -333,7 +355,7 @@ globalkeys = gears.table.join(
         end,
         {description = "lua execute prompt", group = "awesome"}),
 
-    awful.key({ modkey }, "d", destroy_first_notification,
+    awful.key({ modkey }, "d", function() naughty.destroy_all_notifications() end,
         {description = "lua execute prompt", group = "awesome"})
 )
 
