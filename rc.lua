@@ -163,9 +163,9 @@ awful.screen.connect_for_each_screen(function(s)
         }
 
         -- Create the wibox
-        s.topbar = awful.wibar({position="top", screen=s, height=20})
-        s.bottombar = awful.wibar({position='bottom', screen=s, height=20})
-        --s.bottombar = awful.wibar({ position = 'bottom', screen = s })
+        s.topbar = awful.wibar({position="top", screen=s, height=45})
+        bottombar = wibox.widget {
+        }
 
         spotify_widget = awful.widget.watch('current_spotify_song.sh', 1,
         function(widget, stdout)
@@ -187,6 +187,11 @@ awful.screen.connect_for_each_screen(function(s)
             widget.text = '💻 ' .. stdout
         end)
 
+        storage_widget = awful.widget.watch([[sh -c "df -h | awk '/\\/$/ {print $3 \"/\" $2}'"]], 1,
+        function(widget, stdout)
+            widget.text = '📁 ' .. stdout
+        end)
+
         last_tx_bytes = 0
         last_rx_bytes = 0
         dl_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/tx_bytes', 1, function(widget, stdout)
@@ -200,50 +205,51 @@ awful.screen.connect_for_each_screen(function(s)
             last_rx_bytes = current_rx_bytes
         end)
 
-        s.bottombar:setup {
-            layout = wibox.layout.align.horizontal,
-            { -- left widgets
-                ul_traffic_widget,
-                dl_traffic_widget,
-                layout = wibox.layout.align.horizontal,
-            },
-            {
-                s.mytasklist,
-                widget = wibox.container.margin,
-                left = 10,
-                right = 10,
-            },
-            { -- right widgets
-                memory_widget,
-                create_separator(),
-                keyboard_layout_widget,
-                layout = wibox.layout.align.horizontal,
-            }
-        }
-
         -- Add widgets to the wibox
         s.topbar:setup {
-            layout = wibox.layout.align.horizontal,
-            { -- Left widgets
-                layout = wibox.layout.fixed.horizontal,
-                s.mytaglist,
-                s.mypromptbox,
+            layout = wibox.layout.align.vertical,
+            wibox.widget {
+                layout = wibox.layout.align.horizontal,
+                forced_height = 25,
+                { -- Left widgets
+                    layout = wibox.layout.fixed.horizontal,
+                    s.mytaglist,
+                    s.mypromptbox,
+                },
+                s.mytasklist,
+                { -- Right widgets
+                    layout = wibox.layout.fixed.horizontal,
+                    spotify_widget,
+                    create_separator(),
+                    volume_widget,
+                    create_separator(),
+                    time_widget,
+                    create_separator(),
+                    wibox.widget.systray(),
+                    create_separator(),
+                    s.mylayoutbox,
+                },
             },
-            { -- middle
-                layout = wibox.layout.fixed.horizontal,
-            },
-            { -- Right widgets
-                layout = wibox.layout.fixed.horizontal,
-                spotify_widget,
-                create_separator(),
-                volume_widget,
-                create_separator(),
-                time_widget,
-                create_separator(),
-                wibox.widget.systray(),
-                create_separator(),
-                s.mylayoutbox,
-            },
+            wibox.widget {
+                layout = wibox.layout.align.horizontal,
+                forced_height = 20,
+                { -- left widgets
+                    ul_traffic_widget,
+                    dl_traffic_widget,
+                    layout = wibox.layout.align.horizontal,
+                },
+                {
+                    widget = wibox.container.margin,
+                    left = 10,
+                    right = 10,
+                },
+                { -- right widgets
+                    memory_widget,
+                    create_separator(),
+                    storage_widget,
+                    layout = wibox.layout.align.horizontal,
+                }
+            }
         }
 end)
 
