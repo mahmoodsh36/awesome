@@ -39,8 +39,8 @@ function create_volume_popup()
         border_color = '#333333',
         border_width = 2,
         placement    = function(c)
-        awful.placement.top_right(c)
-        awful.placement.no_offscreen(c, {honor_workarea=true, margins=40})
+            awful.placement.top_right(c)
+            awful.placement.no_offscreen(c, {honor_workarea=true, margins=40})
         end,
         shape        = gears.shape.rounded_rect,
         visible      = false,
@@ -48,7 +48,7 @@ function create_volume_popup()
 }
 end
 
-volume_popup = create_volume_popup()
+local volume_popup = create_volume_popup()
 
 function volume_popup.show()
     awful.spawn.easy_async(

@@ -38,7 +38,7 @@ local volume_widget = wibox.widget {
 
 function volume_widget.update()
     awful.spawn.easy_async(
-        {"sh", "-c", "amixer get Master | awk 'END {print $4}' | tr -d '[]%'"},
+        {"sh", "-c", "amixer get Master | awk 'END {print $5}' | tr -d '[]%'"},
         function(out)
             local percentage = tonumber(out)
             volume_widget.slider.value = percentage
@@ -49,12 +49,12 @@ function volume_widget.update()
 end
 
 function volume_widget.increase_volume(val)
-    awful.spawn('amixer set Master ' .. tostring(val) .. '%+')
+    os.execute('amixer set Master ' .. tostring(val) .. '%+')
     volume_widget.update()
 end
 
 function volume_widget.decrease_volume(val)
-    awful.spawn('amixer set Master ' .. tostring(val) .. '%-')
+    os.execute('amixer set Master ' .. tostring(val) .. '%-')
     volume_widget.update()
 end
 
