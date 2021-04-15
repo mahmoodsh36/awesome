@@ -213,7 +213,6 @@ awful.screen.connect_for_each_screen(function(s)
 
         -- Create the wibox
         s.topbar = awful.wibar({position="top", screen=s, height=70})
-
         sometextbox = wibox.widget.textbox()
         sometextbox_text = ""
         color = "white"
@@ -332,6 +331,13 @@ awful.screen.connect_for_each_screen(function(s)
             current_rx_bytes = tonumber(stdout)
             widget.text = '⬇️ ' .. tostring(math.floor((current_rx_bytes - last_rx_bytes) / 1000)) .. 'kb/s'
             last_rx_bytes = current_rx_bytes
+        end)
+        ping_widget = awful.widget.watch([[timeout 1 sh -c "ping -c 1 trackifyapp.net | awk '/time=/ {print substr($8, 6)}'"]], 1, function(widget, stdout)
+            if stdout ~= '' then
+                widget.text = 'ping ' .. stdout
+            else
+                widget.text = 'offline'
+            end
         end)
 
         wifi_widget = awful.widget.watch([[zsh -c '( sudo wpa_cli -i wlp0s20f3 status; sudo wpa_cli -i wlp0s20f3 signal_poll ) | grep "^\(ssid\|RSSI\)" | cut -d "=" -f2 | tr "\n" " " | read wifi rssi; echo $wifi $rssi']], 1, function(widget, stdout)
