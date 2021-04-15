@@ -8,9 +8,9 @@ local themes_path = gfs.get_themes_dir()
 
 local theme = {}
 
-theme.font          = "Hack 13"
-theme.bg_normal     = "#000000"
-theme.bg_focus      = "#333333"
+theme.font          = "fantasque sans mono 14"
+theme.bg_normal     = "#333333"
+theme.bg_focus      = "#777777"
 theme.bg_urgent     = "#ff0000"
 theme.bg_minimize   = "#444444"
 theme.bg_systray    = theme.bg_normal
@@ -28,7 +28,7 @@ theme.border_marked = "#91231c"
 
 theme.notification_shape = gears.shape.rounded_rect
 
-theme.menu_font = 'Hack 15'
+theme.menu_font = 'fantasque sans mono 15'
 
 -- There are other variable sets
 -- overriding the default one when
@@ -97,7 +97,7 @@ theme.titlebar_maximized_button_focus_inactive  = themes_path.."default/titlebar
 theme.titlebar_maximized_button_normal_active = themes_path.."default/titlebar/maximized_normal_active.png"
 theme.titlebar_maximized_button_focus_active  = themes_path.."default/titlebar/maximized_focus_active.png"
 
--- theme.wallpaper = themes_path.."default/background.png"
+theme.wallpaper = themes_path.."/home/mahmooz/.cache/wallpaper"
 
 -- You can use your own layout icons like this:
 theme.layout_fairh = themes_path.."default/layouts/fairhw.png"

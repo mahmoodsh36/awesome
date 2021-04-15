@@ -4,15 +4,20 @@ require("awful.autofocus") -- autofocus windows when switching workspaces and su
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
-local volume_widget = require("volume_widget")
+local volume_widget = require("widgets/volume_widget")
+local brightness_widget = require("widgets/brightness_widget")
+local keyboard_widget = require("widgets/keyboard_widget")
+--local navigation_widget = require("widgets/navigation_widget")
 
 used_theme = "first"
 themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
-terminal = "st -e tmux"
+terminal = "alacritty -e tmux"
 editor = os.getenv("EDITOR") or "vim"
 modkey = "Mod4"
 
 beautiful.init(themes_dir .. used_theme .. '/theme.lua')
+
+-- local panel = require("widgets/panel")
 
 if awesome.startup_errors then
     naughty.notify({ preset = naughty.config.presets.critical,
@@ -35,8 +40,8 @@ end
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
-    awful.layout.suit.tile,
     awful.layout.suit.floating,
+    awful.layout.suit.tile,
     --awful.layout.suit.tile.bottom,
     --awful.layout.suit.tile.top,
     --awful.layout.suit.fair,
@@ -54,14 +59,24 @@ awful.layout.layouts = {
 
 -- Create a launcher widget and a main menu
 myawesomemenu = {
-    { "config", "st -e tmux new-session \\; send-keys '" .. editor .. ' ' .. awesome.conffile .. "; exit' C-m \\;" },
+    { "config", "alacritty -e tmux new-session \\; send-keys '" .. editor .. ' ' .. awesome.conffile .. "; exit' C-m \\;" },
     { "restart", awesome.restart },
     { "quit", function() awesome.quit() end },
+    { "reboot", function() os.execute('reboot') end },
+}
+appsmenu = {
+    { "terminal", "alacritty -e tmux" },
+    { "ranger", "alacritty -e tmux new-session \\; send-keys 'ranger; exit' C-m  \\;" },
+    { "spotify", "spotify" },
+    { "firefox", "firefox" },
+    { "emacs", "emacs" },
+    { "discord", "discord" },
+    { "scrcpy", "scrcpy" }
 }
 
 mymainmenu = awful.menu({
     items = { { "awesomewm", myawesomemenu, },
-        { "terminal", terminal },
+        { "apps", appsmenu },
         { "wallpaper", "sxiv -t /home/mahmooz/data/images/wal/" },
         { "reset wallpaper", function()
                 os.execute("hsetroot -fill /home/mahmooz/.cache/wallpaper")
@@ -106,7 +121,8 @@ local tasklist_buttons = gears.table.join(
     end),
     awful.button({ }, 5, function ()
         awful.client.focus.byidx(-1)
-end))
+    end)
+)
 
 local function set_wallpaper(s)
     -- Wallpaper
@@ -121,7 +137,7 @@ local function set_wallpaper(s)
 end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
---screen.connect_signal("property::geometry", set_wallpaper)
+screen.connect_signal("property::geometry", set_wallpaper)
 
 function create_separator()
     return wibox.widget {
@@ -152,25 +168,138 @@ awful.screen.connect_for_each_screen(function(s)
         s.mytaglist = awful.widget.taglist {
             screen  = s,
             filter  = awful.widget.taglist.filter.all,
-            buttons = taglist_buttons
+            buttons = taglist_buttons,
         }
 
         -- Create a tasklist widget
-        s.mytasklist = awful.widget.tasklist {
+        s.windowslist = awful.widget.tasklist {
             screen  = s,
             filter  = awful.widget.tasklist.filter.currenttags,
-            buttons = tasklist_buttons
+            buttons = tasklist_buttons,
+            style    = {
+                shape_border_width = 1,
+                shape_border_color = '#777777',
+                shape  = gears.shape.rounded_bar,
+            },
+            layout = {
+                spacing = 5,
+                layout  = wibox.layout.fixed.horizontal
+            },
+            widget_template = {
+                {
+                    {
+                        {
+                            {
+                                id     = 'icon_role',
+                                widget = wibox.widget.imagebox,
+                            },
+                            margins = 2,
+                            widget  = wibox.container.margin,
+                        },
+                        {
+                            id     = 'text_role',
+                            widget = wibox.widget.textbox,
+                        },
+                        layout = wibox.layout.fixed.horizontal,
+                    },
+                    left  = 10,
+                    right = 10,
+                    widget = wibox.container.margin
+                },
+                id     = 'background_role',
+                widget = wibox.container.background,
+            },
         }
 
         -- Create the wibox
-        s.topbar = awful.wibar({position="top", screen=s, height=45})
-        bottombar = wibox.widget {
-        }
+        s.topbar = awful.wibar({position="top", screen=s, height=70})
 
+        sometextbox = wibox.widget.textbox()
+        sometextbox_text = ""
+        color = "white"
         spotify_widget = awful.widget.watch('current_spotify_song.sh', 1,
         function(widget, stdout)
-            widget.text = '🤘 ' .. stdout
+            widget:buttons(gears.table.join(
+                awful.button({}, 1, nil, function ()
+                    --popup = awful.popup {
+                    --    widget = {
+                    --        layout = wibox.container.scroll.horizontal,
+                    --        max_size = 100,
+                    --        step_function = wibox.container.scroll.step_functions
+                    --            .waiting_nonlinear_back_and_forth,
+                    --        speed = 100,
+                    --        {
+                    --            widget = wibox.widget.textbox,
+                    --            text = "This is a " .. string.rep("very, ", 10) ..  " very long text",
+                    --        },
+                    --    },
+                    --    bg = '#000000',
+                    --    border_color = '#ffffff',
+                    --    border_width = 2,
+                    --    placement    = function(c)
+                    --        awful.placement.centered(c)
+                    --        awful.placement.no_offscreen(c, {honor_workarea=true, margins=40})
+                    --    end,
+                    --    shape        = gears.shape.rounded_rect,
+                    --    visible      = true,
+                    --    ontop        = true
+                    --}
+                    awful.spawn('spotify_lyrics.sh')
+                end)
+            ))
+            sometextbox_text = stdout
+            widget.markup = '<span foreground="' .. color .. '">🤘 ' .. stdout .. '</span>'
+        end, sometextbox)
+        sometextbox:connect_signal("mouse::enter",  function(c)
+            if sometextbox_text ~= nil then
+                sometextbox.markup = '<span foreground="black">🤘 ' .. sometextbox_text .. '</span>'
+                color = "black"
+            end
         end)
+        sometextbox:connect_signal("mouse::leave",  function(c)
+            if sometextbox_text ~= nil then
+                sometextbox.markup = '<span foreground="white">🤘 ' .. sometextbox_text .. '</span>'
+                color = "white"
+            end
+        end)
+
+        button_clicked = false
+        playerctl_spotify_widget = awful.widget.watch('playerctl -p spotify status', 0.1,
+        function(widget, stdout)
+            playing = stdout == 'Playing'
+            prev_button = wibox.widget {
+                widget = wibox.widget.imagebox,
+                image = '/home/mahmooz/data/icons/prev.png'
+            }
+            if button_clicked then
+                playing = not playing
+                button_clicked = false
+            end
+            if playing then
+                toggle_button = awful.widget.button {
+                    widget = wibox.widget.imagebox,
+                    image = '/home/mahmooz/data/icons/pause.png'
+                }
+            else
+                toggle_button = awful.widget.button {
+                    image = '/home/mahmooz/data/icons/play.png'
+                }
+            end
+            next_button = awful.widget.button {
+                image = '/home/mahmooz/data/icons/prev.png'
+            }
+            toggle_button.connect_signal("button::press",  function(c)
+                button_clicked = true
+            end)
+            widget.children = {
+                prev_button,
+                toggle_button,
+                next_button,
+            }
+        end, wibox.widget {
+            layout = wibox.layout.align.horizontal,
+            wibox.widget.textbox()
+        })
 
         keyboard_layout_widget = awful.widget.watch("sh -c \"setxkbmap -query | awk '/layout/ {print $2}'\"", 1,
         function(widget, stdout)
@@ -205,9 +334,32 @@ awful.screen.connect_for_each_screen(function(s)
             last_rx_bytes = current_rx_bytes
         end)
 
+        wifi_widget = awful.widget.watch([[zsh -c '( sudo wpa_cli -i wlp0s20f3 status; sudo wpa_cli -i wlp0s20f3 signal_poll ) | grep "^\(ssid\|RSSI\)" | cut -d "=" -f2 | tr "\n" " " | read wifi rssi; echo $wifi $rssi']], 1, function(widget, stdout)
+            widget.text = '📶 ' .. stdout
+        end)
+
+        eth_widget = awful.widget.watch("get_eth_price.py", 60, function(widget, stdout)
+            widget.text = 'ETH ' .. stdout
+        end)
+
+        btc_widget = awful.widget.watch("get_btc_price.py", 60, function(widget, stdout)
+            widget.text = 'BTC ' .. stdout
+        end)
+
+        transmission_widget = awful.widget.watch([[sh -c 'transmission-remote -l | grep -v "Stopped\|Finished\|Sum\|\s*ID" | awk "split(\$8,a,\".\") {print \$2 \" \" a[1] \"kb/s\"}"']], 1, function(widget, stdout)
+            widget.text = ' ' .. stdout
+        end)
+
+        rs3_widget = awful.widget.watch('rs_player_count.py rs3', 7, function(widget, stdout)
+            widget.text = ' ' .. stdout
+        end)
+        osrs_widget = awful.widget.watch('rs_player_count.py osrs', 7, function(widget, stdout)
+            widget.text = ' ' .. stdout
+        end)
+
         -- Add widgets to the wibox
         s.topbar:setup {
-            layout = wibox.layout.align.vertical,
+            layout = wibox.layout.flex.vertical,
             wibox.widget {
                 layout = wibox.layout.align.horizontal,
                 forced_height = 25,
@@ -216,10 +368,14 @@ awful.screen.connect_for_each_screen(function(s)
                     s.mytaglist,
                     s.mypromptbox,
                 },
-                s.mytasklist,
+                {
+                    layout = wibox.layout.fixed.horizontal,
+                },
                 { -- Right widgets
                     layout = wibox.layout.fixed.horizontal,
                     spotify_widget,
+                    create_separator(),
+                    brightness_widget,
                     create_separator(),
                     volume_widget,
                     create_separator(),
@@ -231,23 +387,64 @@ awful.screen.connect_for_each_screen(function(s)
                 },
             },
             wibox.widget {
-                layout = wibox.layout.align.horizontal,
-                forced_height = 20,
-                { -- left widgets
-                    ul_traffic_widget,
-                    dl_traffic_widget,
-                    layout = wibox.layout.align.horizontal,
+                layout  = wibox.layout.align.horizontal,
+                s.windowslist,
+                {
+                    layout = wibox.layout.fixed.horizontal,
                 },
                 {
-                    widget = wibox.container.margin,
-                    left = 10,
-                    right = 10,
-                },
-                { -- right widgets
+                    layout = wibox.layout.fixed.horizontal,
+                    --wibox.widget {
+                    --    widget = wibox.widget.imagebox,
+                    --    image = '/home/mahmooz/data/icons/osrs.png'
+                    --},
+                    --osrs_widget,
+                    --create_separator(),
+                    --wibox.widget {
+                    --    widget = wibox.widget.imagebox,
+                    --    image = '/home/mahmooz/data/icons/rs3.jpg'
+                    --},
+                    --rs3_widget,
+                    wibox.widget {
+                        widget = wibox.widget.imagebox,
+                        image = '/home/mahmooz/data/icons/transmission.png'
+                    },
+                    transmission_widget,
+                    create_separator(),
+                    ul_traffic_widget,
+                    dl_traffic_widget,
+                    create_separator(),
+                    wifi_widget,
+                    create_separator(),
+                    --playerctl_spotify_widget,
+                    --create_separator(),
                     memory_widget,
                     create_separator(),
                     storage_widget,
-                    layout = wibox.layout.align.horizontal,
+                }
+            },
+            wibox.widget {
+                layout  = wibox.layout.align.horizontal,
+                {
+                    layout = wibox.layout.fixed.horizontal,
+                },
+                {
+                    layout = wibox.layout.fixed.horizontal,
+                },
+                {
+                    layout = wibox.layout.fixed.horizontal,
+                    eth_widget,
+                    create_separator(),
+                    btc_widget,
+                    --wibox.widget {
+                    --    widget = wibox.widget.imagebox,
+                    --    image = '/home/mahmooz/data/icons/android.png',
+                    --    buttons = gears.table.join(
+                    --        awful.button({}, 1, nil, function ()
+                    --                awful.spawn('scrcpy')
+                    --        end)
+                    --    )
+                    --},
                 }
             }
         }
@@ -314,18 +511,22 @@ globalkeys = gears.table.join(
         {description = "swap with next client by index", group = "client"}),
     awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end,
         {description = "swap with previous client by index", group = "client"}),
-    awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end,
-        {description = "focus the next screen", group = "screen"}),
-    awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end,
-        {description = "focus the previous screen", group = "screen"}),
+    -- awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end,
+    --     {description = "focus the next screen", group = "screen"}),
+    -- awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end,
+    --     {description = "focus the previous screen", group = "screen"}),
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto,
         {description = "jump to urgent client", group = "client"}),
     awful.key({ modkey,           }, "Tab",
         function ()
-            awful.client.focus.history.previous()
-            if client.focus then
-                client.focus:raise()
-            end
+            awful.client.focus.byidx(1)
+            --navigation_widget.show()
+        end,
+        {description = "go back", group = "client"}),
+    awful.key({ modkey, "Shift" }, "Tab",
+        function ()
+            awful.client.focus.byidx(-1)
+            --navigation_widget.show()
         end,
         {description = "go back", group = "client"}),
 
@@ -344,6 +545,13 @@ globalkeys = gears.table.join(
         volume_widget.decrease_volume(3)
     end, {description = "decrease volume", group = 'volume'}),
 
+    awful.key({ modkey, "Control" }, "k", function()
+        brightness_widget.increase(3)
+    end, {description = "increase brightness", group = 'volume'}),
+    awful.key({ modkey, "Control" }, "j", function()
+        brightness_widget.decrease(3)
+    end, {description = "decrease brightness", group = 'volume'}),
+
     --awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
     --{description = "increase master width factor", group = "layout"}),
     --awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)          end,
@@ -356,6 +564,10 @@ globalkeys = gears.table.join(
     --           {description = "increase the number of columns", group = "layout"}),
     -- awful.key({ modkey, "Control" }, "l",     function () awful.tag.incncol(-1, nil, true)    end,
     -- {description = "decrease the number of columns", group = "layout"}),
+    awful.key({ modkey, "Control" }, "space", function ()
+        keyboard_widget.switch_layout()
+        keyboard_widget.show()
+    end, {description = "switch to next keyboard layout", group = "keyboard"}),
     awful.key({ modkey,           }, "space", function () awful.layout.inc( 1)                end,
         {description = "select next", group = "layout"}),
     --awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(-1)                end,
@@ -400,6 +612,12 @@ clientkeys = gears.table.join(
         end,
         {description = "toggle fullscreen", group = "client"}),
 
+    awful.key({ modkey,           }, "c", function (c)
+        awful.placement.centered(c)
+        awful.placement.no_offscreen(c)
+    end,
+        {description = "center client", group = "client"}),
+
     awful.key({ modkey,           }, "q",      function (c) c:kill()                         end,
         {description = "close", group = "client"}),
     awful.key({ modkey, "Shift"   }, "space",  awful.client.floating.toggle                     ,
@@ -436,6 +654,17 @@ clientkeys = gears.table.join(
         end ,
         {description = "(un)maximize horizontally", group = "client"})
 )
+
+globalkeys = gears.table.join(globalkeys,
+    awful.key({modkey}, "`", function()
+        local screen = awful.screen.focused()
+        local tag = screen.tags[4]
+        if tag then
+            tag:view_only()
+        end
+    end)
+)
+
 
 -- Bind all key numbers to tags.
 -- Be careful: we use keycodes to make it work on any keyboard layout.
@@ -556,6 +785,8 @@ awful.rules.rules = {
                  }, properties = { titlebars_enabled = true }
     },
 
+    --{ rule_any = { name = { "win.*", }, }, properties = {focusable = false, ontop = true, titlebars_enabled = false} },
+
     -- Set Firefox to always map on the tag named "2" on screen 1.
     -- { rule = { class = "Firefox" },
     --   properties = { screen = 1, tag = "2" } },
@@ -609,7 +840,7 @@ client.connect_signal("request::titlebars", function(c)
             --awful.titlebar.widget.maximizedbutton(c),
             --awful.titlebar.widget.stickybutton   (c),
             --awful.titlebar.widget.ontopbutton    (c),
-            awful.titlebar.widget.closebutton      (c),
+            awful.titlebar.widget.closebutton    (c),
             layout = wibox.layout.fixed.horizontal()
         },
         layout = wibox.layout.align.horizontal
@@ -623,4 +854,13 @@ end)
 
 client.connect_signal("focus",   function(c) c.border_color = beautiful.border_focus  end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
-client.connect_signal("manage",  function(c) c.shape = gears.shape.rounded_rect       end)
+client.connect_signal("manage",  function(c)
+    c.shape = gears.shape.rounded_rect
+    if c.fullscreen then
+        c.ontop = true
+    end
+    --navigation_widget.show()
+end)
+client.connect_signal("manage",  function(c)
+    --navigation_widget.show()
+end)
