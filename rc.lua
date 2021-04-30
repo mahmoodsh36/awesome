@@ -5,9 +5,14 @@ local wibox = require("wibox")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
 local volume_widget = require("widgets/volume_widget")
+local bluetooth_volume_widget = require("widgets/bluetooth_volume_widget")
 local brightness_widget = require("widgets/brightness_widget")
 local keyboard_widget = require("widgets/keyboard_widget")
+local slider_controlled_widget = require("widgets/slider_controlled_widget")
 --local navigation_widget = require("widgets/navigation_widget")
+
+print(volume_widget.widget)
+print(bluetooth_volume_widget.widget)
 
 used_theme = "first"
 themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
@@ -79,7 +84,7 @@ mymainmenu = awful.menu({
         { "apps", appsmenu },
         { "wallpaper", "sxiv -t /home/mahmooz/data/images/wal/" },
         { "reset wallpaper", function()
-                os.execute("hsetroot -fill /home/mahmooz/.cache/wallpaper")
+                os.execute("feh --bg-fill ~/.cache/wallpaper")
         end },
     },
 })
@@ -137,7 +142,7 @@ local function set_wallpaper(s)
 end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
-screen.connect_signal("property::geometry", set_wallpaper)
+--screen.connect_signal("property::geometry", set_wallpaper)
 
 function create_separator()
     return wibox.widget {
@@ -216,7 +221,7 @@ awful.screen.connect_for_each_screen(function(s)
         sometextbox = wibox.widget.textbox()
         sometextbox_text = ""
         color = "white"
-        spotify_widget = awful.widget.watch('current_spotify_song.sh', 1,
+        spotify_widget = awful.widget.watch('sh -c ~/workspace/scripts/current_spotify_song.sh', 1,
         function(widget, stdout)
             widget:buttons(gears.table.join(
                 awful.button({}, 1, nil, function ()
@@ -243,7 +248,7 @@ awful.screen.connect_for_each_screen(function(s)
                     --    visible      = true,
                     --    ontop        = true
                     --}
-                    awful.spawn('spotify_lyrics.sh')
+                    awful.spawn('sh -c ~/workspace/scripts/spotify_lyrics.sh')
                 end)
             ))
             sometextbox_text = stdout
@@ -261,44 +266,6 @@ awful.screen.connect_for_each_screen(function(s)
                 color = "white"
             end
         end)
-
-        button_clicked = false
-        playerctl_spotify_widget = awful.widget.watch('playerctl -p spotify status', 0.1,
-        function(widget, stdout)
-            playing = stdout == 'Playing'
-            prev_button = wibox.widget {
-                widget = wibox.widget.imagebox,
-                image = '/home/mahmooz/data/icons/prev.png'
-            }
-            if button_clicked then
-                playing = not playing
-                button_clicked = false
-            end
-            if playing then
-                toggle_button = awful.widget.button {
-                    widget = wibox.widget.imagebox,
-                    image = '/home/mahmooz/data/icons/pause.png'
-                }
-            else
-                toggle_button = awful.widget.button {
-                    image = '/home/mahmooz/data/icons/play.png'
-                }
-            end
-            next_button = awful.widget.button {
-                image = '/home/mahmooz/data/icons/prev.png'
-            }
-            toggle_button.connect_signal("button::press",  function(c)
-                button_clicked = true
-            end)
-            widget.children = {
-                prev_button,
-                toggle_button,
-                next_button,
-            }
-        end, wibox.widget {
-            layout = wibox.layout.align.horizontal,
-            wibox.widget.textbox()
-        })
 
         keyboard_layout_widget = awful.widget.watch("sh -c \"setxkbmap -query | awk '/layout/ {print $2}'\"", 1,
         function(widget, stdout)
@@ -381,9 +348,7 @@ awful.screen.connect_for_each_screen(function(s)
                     layout = wibox.layout.fixed.horizontal,
                     spotify_widget,
                     create_separator(),
-                    brightness_widget,
-                    create_separator(),
-                    volume_widget,
+                    volume_widget.widget,
                     create_separator(),
                     time_widget,
                     create_separator(),
@@ -422,7 +387,6 @@ awful.screen.connect_for_each_screen(function(s)
                     create_separator(),
                     wifi_widget,
                     create_separator(),
-                    --playerctl_spotify_widget,
                     --create_separator(),
                     memory_widget,
                     create_separator(),
@@ -439,9 +403,10 @@ awful.screen.connect_for_each_screen(function(s)
                 },
                 {
                     layout = wibox.layout.fixed.horizontal,
-                    eth_widget,
-                    create_separator(),
-                    btc_widget,
+                    --eth_widget,
+                    --create_separator(),
+                    --btc_widget,
+                    --create_separator(),
                     --wibox.widget {
                     --    widget = wibox.widget.imagebox,
                     --    image = '/home/mahmooz/data/icons/android.png',
@@ -451,6 +416,10 @@ awful.screen.connect_for_each_screen(function(s)
                     --        end)
                     --    )
                     --},
+                    create_separator(),
+                    bluetooth_volume_widget.widget,
+                    create_separator(),
+                    brightness_widget.widget,
                 }
             }
         }
@@ -545,10 +514,10 @@ globalkeys = gears.table.join(
         {description = "quit awesome", group = "awesome"}),
 
     awful.key({ modkey, "Mod1" }, "k", function()
-        volume_widget.increase_volume(3)
+        volume_widget:update_increase(3)
     end, {description = "increase volume", group = 'volume'}),
     awful.key({ modkey, "Mod1" }, "j", function()
-        volume_widget.decrease_volume(3)
+        volume_widget:update_increase(-3)
     end, {description = "decrease volume", group = 'volume'}),
 
     awful.key({ modkey, "Control" }, "k", function()

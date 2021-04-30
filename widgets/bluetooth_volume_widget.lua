@@ -1,15 +1,14 @@
 local slider_controlled_widget = require("widgets/slider_controlled_widget")
 local awful = require("awful")
 
-volume_widget = slider_controlled_widget:new('🔊 ')
+bluetooth_volume_widget = slider_controlled_widget:new('🎧🔊 ')
 
-volume_widget.on_slider_input = function(value)
-    print(value)
-    awful.spawn('pactl set-sink-volume 0 ' .. tostring(value) .. '%')
+bluetooth_volume_widget.on_slider_input = function(value)
+    awful.spawn('sh -c "~/workspace/scripts/control_bluetooth_volume.sh ' .. tostring(value) .. '%"')
 end
 
-volume_widget.on_update = function(value)
-    awful.spawn('pactl set-sink-volume 0 ' .. tostring(value) .. '%')
+bluetooth_volume_widget.on_update = function(value)
+    os.execute('sh -c "~/workspace/scripts/control_bluetooth_volume.sh ' .. tostring(value) .. '%"')
 end
 
 --function volume_widget.update()
@@ -25,4 +24,4 @@ end
 --    )
 --end
 
-return volume_widget
+return bluetooth_volume_widget
