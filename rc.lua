@@ -5,14 +5,13 @@ local wibox = require("wibox")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
 local volume_widget = require("widgets/volume_widget")
-local bluetooth_volume_widget = require("widgets/bluetooth_volume_widget")
 local brightness_widget = require("widgets/brightness_widget")
 local keyboard_widget = require("widgets/keyboard_widget")
 local slider_controlled_widget = require("widgets/slider_controlled_widget")
+local text_button = require('widgets/text_button')
 --local navigation_widget = require("widgets/navigation_widget")
 
-print(volume_widget.widget)
-print(bluetooth_volume_widget.widget)
+os.execute('~/workspace/scripts/startup.sh')
 
 used_theme = "first"
 themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
@@ -21,6 +20,8 @@ editor = os.getenv("EDITOR") or "vim"
 modkey = "Mod4"
 
 beautiful.init(themes_dir .. used_theme .. '/theme.lua')
+
+local screen_toolkit = require("widgets/screen_toolkit")
 
 -- local panel = require("widgets/panel")
 
@@ -152,9 +153,121 @@ function create_separator()
     }
 end
 
+spotify_widget = text_button:new('song here', function()
+    awful.spawn('spotify_lyrics.sh')
+end)
+
+spotify_widget_timer = gears.timer {
+    timeout     = 0.35,
+    call_now    = true,
+    autostart   = true,
+    single_shot = false,
+    callback = function()
+        awful.spawn.easy_async(
+            {"current_spotify_song.sh"},
+            function(out)
+                spotify_widget:change_text('🤘🎶 ' .. out)
+            end
+        )
+    end
+}
+
+function create_topbar(s)
+
+    s.topbar = awful.wibar({position="top", screen=s, height=70})
+
+    s.topbar:setup {
+        visible = true,
+        layout = wibox.layout.flex.vertical,
+        wibox.widget {
+            layout = wibox.layout.align.horizontal,
+            forced_height = 25,
+            { -- Left widgets
+                layout = wibox.layout.fixed.horizontal,
+                s.mytaglist,
+                s.mypromptbox,
+            },
+            {
+                layout = wibox.layout.fixed.horizontal,
+            },
+            { -- Right widgets
+                layout = wibox.layout.fixed.horizontal,
+                spotify_widget,
+                create_separator(),
+                volume_widget.widget,
+                create_separator(),
+                time_widget,
+                create_separator(),
+                wibox.widget.systray(),
+                create_separator(),
+                s.mylayoutbox,
+            },
+        },
+        wibox.widget {
+            layout  = wibox.layout.align.horizontal,
+            s.windowslist,
+            {
+                layout = wibox.layout.fixed.horizontal,
+            },
+            {
+                layout = wibox.layout.fixed.horizontal,
+                --wibox.widget {
+                --    widget = wibox.widget.imagebox,
+                --    image = '/home/mahmooz/data/icons/osrs.png'
+                --},
+                --osrs_widget,
+                --create_separator(),
+                --wibox.widget {
+                --    widget = wibox.widget.imagebox,
+                --    image = '/home/mahmooz/data/icons/rs3.jpg'
+                --},
+                --rs3_widget,
+                create_separator(),
+                wifi_widget,
+                create_separator(),
+                --create_separator(),
+                memory_widget,
+                create_separator(),
+                storage_widget,
+            }
+        },
+        wibox.widget {
+            layout  = wibox.layout.align.horizontal,
+            {
+                layout = wibox.layout.fixed.horizontal,
+            },
+            {
+                layout = wibox.layout.fixed.horizontal,
+            },
+            {
+                layout = wibox.layout.fixed.horizontal,
+                --eth_widget,
+                --create_separator(),
+                --btc_widget,
+                --create_separator(),
+                --wibox.widget {
+                --    widget = wibox.widget.imagebox,
+                --    image = '/home/mahmooz/data/icons/android.png',
+                --    buttons = gears.table.join(
+                --        awful.button({}, 1, nil, function ()
+                --                awful.spawn('scrcpy')
+                --        end)
+                --    )
+                --},
+                create_separator(),
+                restart_networkmanager_button,
+                create_separator(),
+                bluetooth_volume_widget.widget,
+                create_separator(),
+                brightness_widget.widget,
+            }
+        }
+    }
+end
+
 awful.screen.connect_for_each_screen(function(s)
         -- Wallpaper
-        set_wallpaper(s)
+        -- set_wallpaper(s)
 
         -- Each screen has its own tag table.
         awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
@@ -216,89 +329,15 @@ awful.screen.connect_for_each_screen(function(s)
             },
         }
 
+        --toolkit = screen_toolkit:new(s)
+
         -- Create the wibox
-        s.topbar = awful.wibar({position="top", screen=s, height=70})
-        sometextbox = wibox.widget.textbox()
-        sometextbox_text = ""
-        color = "white"
-        spotify_widget = awful.widget.watch('sh -c ~/workspace/scripts/current_spotify_song.sh', 1,
-        function(widget, stdout)
-            widget:buttons(gears.table.join(
-                awful.button({}, 1, nil, function ()
-                    --popup = awful.popup {
-                    --    widget = {
-                    --        layout = wibox.container.scroll.horizontal,
-                    --        max_size = 100,
-                    --        step_function = wibox.container.scroll.step_functions
-                    --            .waiting_nonlinear_back_and_forth,
-                    --        speed = 100,
-                    --        {
-                    --            widget = wibox.widget.textbox,
-                    --            text = "This is a " .. string.rep("very, ", 10) ..  " very long text",
-                    --        },
-                    --    },
-                    --    bg = '#000000',
-                    --    border_color = '#ffffff',
-                    --    border_width = 2,
-                    --    placement    = function(c)
-                    --        awful.placement.centered(c)
-                    --        awful.placement.no_offscreen(c, {honor_workarea=true, margins=40})
-                    --    end,
-                    --    shape        = gears.shape.rounded_rect,
-                    --    visible      = true,
-                    --    ontop        = true
-                    --}
-                    awful.spawn('sh -c ~/workspace/scripts/spotify_lyrics.sh')
-                end)
-            ))
-            sometextbox_text = stdout
-            widget.markup = '<span foreground="' .. color .. '">🤘 ' .. stdout .. '</span>'
-        end, sometextbox)
-        sometextbox:connect_signal("mouse::enter",  function(c)
-            if sometextbox_text ~= nil then
-                sometextbox.markup = '<span foreground="black">🤘 ' .. sometextbox_text .. '</span>'
-                color = "black"
-            end
-        end)
-        sometextbox:connect_signal("mouse::leave",  function(c)
-            if sometextbox_text ~= nil then
-                sometextbox.markup = '<span foreground="white">🤘 ' .. sometextbox_text .. '</span>'
-                color = "white"
-            end
-        end)
 
         keyboard_layout_widget = awful.widget.watch("sh -c \"setxkbmap -query | awk '/layout/ {print $2}'\"", 1,
         function(widget, stdout)
             widget.text = '⌨ ' .. stdout
         end)
 
-        time_widget = awful.widget.watch('date "+%H:%M:%S (%a) %d/%m/%y"', 1,
-        function(widget, stdout)
-            widget.text = stdout
-        end)
-
-        memory_widget = awful.widget.watch('sh -c "free -h | awk \'/Mem/ {print $3 \\"/\\" $2}\'"', 1,
-        function(widget, stdout)
-            widget.text = '💻 ' .. stdout
-        end)
-
-        storage_widget = awful.widget.watch([[sh -c "df -h | awk '/\\/$/ {print $3 \"/\" $2}'"]], 1,
-        function(widget, stdout)
-            widget.text = '📁 ' .. stdout
-        end)
-
-        last_tx_bytes = 0
-        last_rx_bytes = 0
-        dl_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/tx_bytes', 1, function(widget, stdout)
-            current_tx_bytes = tonumber(stdout)
-            widget.text = ' ⬆️ ' .. tostring(math.floor((current_tx_bytes - last_tx_bytes) / 1000)) .. 'kb/s'
-            last_tx_bytes = current_tx_bytes
-        end)
-        ul_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/rx_bytes', 1, function(widget, stdout)
-            current_rx_bytes = tonumber(stdout)
-            widget.text = '⬇️ ' .. tostring(math.floor((current_rx_bytes - last_rx_bytes) / 1000)) .. 'kb/s'
-            last_rx_bytes = current_rx_bytes
-        end)
         ping_widget = awful.widget.watch([[timeout 1 sh -c "ping -c 1 trackifyapp.net | awk '/time=/ {print substr($8, 6)}'"]], 1, function(widget, stdout)
             if stdout ~= '' then
                 widget.text = 'ping ' .. stdout
@@ -311,18 +350,6 @@ awful.screen.connect_for_each_screen(function(s)
             widget.text = '📶 ' .. stdout
         end)
 
-        eth_widget = awful.widget.watch("get_eth_price.py", 60, function(widget, stdout)
-            widget.text = 'ETH ' .. stdout
-        end)
-
-        btc_widget = awful.widget.watch("get_btc_price.py", 60, function(widget, stdout)
-            widget.text = 'BTC ' .. stdout
-        end)
-
-        transmission_widget = awful.widget.watch([[sh -c 'transmission-remote -l | grep -v "Stopped\|Finished\|Sum\|\s*ID" | awk "split(\$8,a,\".\") {print \$2 \" \" a[1] \"kb/s\"}"']], 1, function(widget, stdout)
-            widget.text = ' ' .. stdout
-        end)
-
         rs3_widget = awful.widget.watch('rs_player_count.py rs3', 7, function(widget, stdout)
             widget.text = ' ' .. stdout
         end)
@@ -330,99 +357,26 @@ awful.screen.connect_for_each_screen(function(s)
             widget.text = ' ' .. stdout
         end)
 
-        -- Add widgets to the wibox
-        s.topbar:setup {
-            layout = wibox.layout.flex.vertical,
-            wibox.widget {
-                layout = wibox.layout.align.horizontal,
-                forced_height = 25,
-                { -- Left widgets
-                    layout = wibox.layout.fixed.horizontal,
-                    s.mytaglist,
-                    s.mypromptbox,
-                },
-                {
-                    layout = wibox.layout.fixed.horizontal,
-                },
-                { -- Right widgets
-                    layout = wibox.layout.fixed.horizontal,
-                    spotify_widget,
-                    create_separator(),
-                    volume_widget.widget,
-                    create_separator(),
-                    time_widget,
-                    create_separator(),
-                    wibox.widget.systray(),
-                    create_separator(),
-                    s.mylayoutbox,
-                },
+        restart_networkmanager_button = wibox.widget {
+            {
+                widget = wibox.widget.textbox,
+                id = 'button',
+                text = ' restart networkmanager ',
+                align = 'center',
             },
-            wibox.widget {
-                layout  = wibox.layout.align.horizontal,
-                s.windowslist,
-                {
-                    layout = wibox.layout.fixed.horizontal,
-                },
-                {
-                    layout = wibox.layout.fixed.horizontal,
-                    --wibox.widget {
-                    --    widget = wibox.widget.imagebox,
-                    --    image = '/home/mahmooz/data/icons/osrs.png'
-                    --},
-                    --osrs_widget,
-                    --create_separator(),
-                    --wibox.widget {
-                    --    widget = wibox.widget.imagebox,
-                    --    image = '/home/mahmooz/data/icons/rs3.jpg'
-                    --},
-                    --rs3_widget,
-                    wibox.widget {
-                        widget = wibox.widget.imagebox,
-                        image = '/home/mahmooz/data/icons/transmission.png'
-                    },
-                    transmission_widget,
-                    create_separator(),
-                    ul_traffic_widget,
-                    dl_traffic_widget,
-                    create_separator(),
-                    wifi_widget,
-                    create_separator(),
-                    --create_separator(),
-                    memory_widget,
-                    create_separator(),
-                    storage_widget,
-                }
-            },
-            wibox.widget {
-                layout  = wibox.layout.align.horizontal,
-                {
-                    layout = wibox.layout.fixed.horizontal,
-                },
-                {
-                    layout = wibox.layout.fixed.horizontal,
-                },
-                {
-                    layout = wibox.layout.fixed.horizontal,
-                    --eth_widget,
-                    --create_separator(),
-                    --btc_widget,
-                    --create_separator(),
-                    --wibox.widget {
-                    --    widget = wibox.widget.imagebox,
-                    --    image = '/home/mahmooz/data/icons/android.png',
-                    --    buttons = gears.table.join(
-                    --        awful.button({}, 1, nil, function ()
-                    --                awful.spawn('scrcpy')
-                    --        end)
-                    --    )
-                    --},
-                    create_separator(),
-                    bluetooth_volume_widget.widget,
-                    create_separator(),
-                    brightness_widget.widget,
-                }
-            }
+            widget = wibox.container.background,
+            bg = beautiful.bg_focus,
+            fg = beautiful.bg_normal,
+            shape = gears.shape.rounded_rect
         }
+        restart_networkmanager_button.button:buttons(gears.table.join(
+            restart_networkmanager_button:buttons(),
+            awful.button({}, 1, nil, function ()
+                    awful.spawn([[sh -c "sudo systemctl restart NetworkManager && notify-send 'restarted networkmanager'"]])
+            end)
+        ))
+
+        create_topbar(s)
 end)
 
 -- Mouse bindings
@@ -724,6 +678,11 @@ awful.rules.rules = {
       }
     },
 
+    --  desktop toolkit
+    { rule = { name = "desktop_toolkit" },
+      properties = { below = true, focusable = false, requests_no_titlebar = true, raise = false, titlebars_enabled = false, }
+    },
+
     -- Floating clients.
     { rule_any = {
           instance = {
@@ -760,6 +719,7 @@ awful.rules.rules = {
                  }, properties = { titlebars_enabled = true }
     },
 
+
     --{ rule_any = { name = { "win.*", }, }, properties = {focusable = false, ontop = true, titlebars_enabled = false} },
 
     -- Set Firefox to always map on the tag named "2" on screen 1.
@@ -783,6 +743,9 @@ end)
 
 -- Add a titlebar if titlebars_enabled is set to true in the rules.
 client.connect_signal("request::titlebars", function(c)
+    if c.name == 'desktop_toolkit' then
+        return
+    end
     -- buttons for the titlebar
     local buttons = gears.table.join(
         awful.button({ }, 1, function()
@@ -839,3 +802,5 @@ end)
 client.connect_signal("manage",  function(c)
     --navigation_widget.show()
 end)
+
+gears.timer.start_new(1, function() collectgarbage("step", 20000) return true end)
