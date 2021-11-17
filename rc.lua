@@ -15,7 +15,6 @@ awful.spawn('/home/mahmooz/workspace/scripts/startup.sh')
 
 used_theme = "first"
 themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
-terminal = "alacritty -e tmux"
 editor = os.getenv("EDITOR") or "vim"
 modkey = "Mod4"
 
@@ -71,8 +70,8 @@ myawesomemenu = {
     { "reboot", function() os.execute('reboot') end },
 }
 appsmenu = {
-    { "terminal", "alacritty -e tmux" },
-    { "ranger", "alacritty -e tmux new-session \\; send-keys 'ranger; exit' C-m  \\;" },
+    { "kitty", "kitty -e tmux" },
+    { "vifm", "alacritty -e tmux new-session \\; send-keys 'vifm; exit' C-m  \\;" },
     { "spotify", "spotify" },
     { "firefox", "firefox" },
     { "emacs", "emacs" },
@@ -84,6 +83,7 @@ mymainmenu = awful.menu({
     items = { { "awesomewm", myawesomemenu, },
         { "apps", appsmenu },
         { "wallpaper", "sxiv -t /home/mahmooz/data/images/wal/" },
+        { "movies", "sxiv -f /home/mahmooz/data/charts/" },
         { "reset wallpaper", function()
                 os.execute("feh --bg-fill ~/.cache/wallpaper")
         end },
@@ -172,6 +172,12 @@ spotify_widget_timer = gears.timer {
     end
 }
 
+battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f4 | tr -d ','"]], 1,
+    function(widget, stdout)
+        widget.text = '🔋' .. stdout
+    end
+)
+
 function create_topbar(s)
 
     s.topbar = awful.wibar({position="top", screen=s, height=70})
@@ -222,8 +228,11 @@ function create_topbar(s)
                 --    image = '/home/mahmooz/data/icons/rs3.jpg'
                 --},
                 --rs3_widget,
+                battery_widget,
                 create_separator(),
-                wifi_widget,
+                dl_traffic_widget,
+                create_separator(),
+                ul_traffic_widget,
                 create_separator(),
                 --create_separator(),
                 memory_widget,
@@ -232,9 +241,11 @@ function create_topbar(s)
             }
         },
         wibox.widget {
+
             layout  = wibox.layout.align.horizontal,
             {
                 layout = wibox.layout.fixed.horizontal,
+                trackify_widget,
             },
             {
                 layout = wibox.layout.fixed.horizontal,
@@ -338,14 +349,6 @@ awful.screen.connect_for_each_screen(function(s)
             widget.text = '⌨ ' .. stdout
         end)
 
-        ping_widget = awful.widget.watch([[timeout 1 sh -c "ping -c 1 trackifyapp.net | awk '/time=/ {print substr($8, 6)}'"]], 1, function(widget, stdout)
-            if stdout ~= '' then
-                widget.text = 'ping ' .. stdout
-            else
-                widget.text = 'offline'
-            end
-        end)
-
         wifi_widget = awful.widget.watch([[zsh -c '( sudo wpa_cli -i wlp0s20f3 status; sudo wpa_cli -i wlp0s20f3 signal_poll ) | grep "^\(ssid\|RSSI\)" | cut -d "=" -f2 | tr "\n" " " | read wifi rssi; echo $wifi $rssi']], 1, function(widget, stdout)
             widget.text = '📶 ' .. stdout
         end)
@@ -375,6 +378,10 @@ awful.screen.connect_for_each_screen(function(s)
                     awful.spawn([[sh -c "sudo systemctl restart NetworkManager && notify-send 'restarted networkmanager'"]])
             end)
         ))
+
+        trackify_widget = awful.widget.watch('trackify_last_play.py', 10, function(widget, stdout)
+            widget.text = '🎶 ' .. stdout
+        end)
 
         create_topbar(s)
 end)
@@ -421,18 +428,25 @@ globalkeys = gears.table.join(
         end,
         {description = "focus right", group = "client"}),
 
-    awful.key({ modkey,           }, "w", function () mymainmenu:show() end,
-        {description = "show main menu", group = "awesome"}),
-
     -- Layout manipulation
     awful.key({ modkey, "Control"   }, "l",
         function ()
-            awful.tag.incmwfact( 0.05)
+            client.focus.x = client.focus.x + 20
         end,
         {description = "increase master width factor", group = "layout"}),
     awful.key({ modkey, "Control"   }, "h",
         function ()
-            awful.tag.incmwfact(-0.05)
+            client.focus.x = client.focus.x - 20
+        end,
+        {description = "decrease master width factor", group = "layout"}),
+    awful.key({ modkey, "Control"   }, "k",
+        function ()
+            client.focus.y = client.focus.y - 20
+        end,
+        {description = "decrease master width factor", group = "layout"}),
+    awful.key({ modkey, "Control"   }, "j",
+        function ()
+            client.focus.y = client.focus.y + 20
         end,
         {description = "decrease master width factor", group = "layout"}),
 
@@ -460,8 +474,6 @@ globalkeys = gears.table.join(
         {description = "go back", group = "client"}),
 
     -- Standard program
-    awful.key({ modkey,           }, "Return", function () awful.spawn(terminal) end,
-        {description = "open a terminal", group = "launcher"}),
     awful.key({ modkey, "Control" }, "r", awesome.restart,
         {description = "reload awesome", group = "awesome"}),
     awful.key({ modkey, "Shift"   }, "q", awesome.quit,
@@ -473,13 +485,6 @@ globalkeys = gears.table.join(
     awful.key({ modkey, "Mod1" }, "j", function()
         volume_widget:update_increase(-3)
     end, {description = "decrease volume", group = 'volume'}),
-
-    awful.key({ modkey, "Control" }, "k", function()
-        brightness_widget.increase(3)
-    end, {description = "increase brightness", group = 'volume'}),
-    awful.key({ modkey, "Control" }, "j", function()
-        brightness_widget.decrease(3)
-    end, {description = "decrease brightness", group = 'volume'}),
 
     --awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
     --{description = "increase master width factor", group = "layout"}),
