@@ -1,7 +1,7 @@
 local slider_controlled_widget = require("widgets/slider_controlled_widget")
 local awful = require("awful")
 
-volume_widget = slider_controlled_widget:new('🔊 ')
+volume_widget = slider_controlled_widget:new('VOL ')
 
 volume_widget.on_slider_input = function(value)
     print(value)

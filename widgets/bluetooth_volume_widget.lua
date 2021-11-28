@@ -1,7 +1,7 @@
 local slider_controlled_widget = require("widgets/slider_controlled_widget")
 local awful = require("awful")
 
-bluetooth_volume_widget = slider_controlled_widget:new('🎧🔊 ')
+bluetooth_volume_widget = slider_controlled_widget:new('BLU ')
 
 bluetooth_volume_widget.on_slider_input = function(value)
     awful.spawn('sh -c "~/workspace/scripts/control_bluetooth_volume.sh ' .. tostring(value) .. '%"')

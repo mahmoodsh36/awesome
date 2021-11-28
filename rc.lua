@@ -166,7 +166,7 @@ spotify_widget_timer = gears.timer {
         awful.spawn.easy_async(
             {"current_spotify_song.sh"},
             function(out)
-                spotify_widget:change_text('🤘🎶 ' .. out)
+                spotify_widget:change_text(out)
             end
         )
     end
@@ -174,13 +174,13 @@ spotify_widget_timer = gears.timer {
 
 battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f4 | tr -d ','"]], 1,
     function(widget, stdout)
-        widget.text = '🔋' .. stdout
+        widget.text = 'BAT ' .. stdout
     end
 )
 
 function create_topbar(s)
 
-    s.topbar = awful.wibar({position="top", screen=s, height=70})
+  s.topbar = awful.wibar({position="top", screen=s, height=45})
 
     s.topbar:setup {
         visible = true,
@@ -380,7 +380,7 @@ awful.screen.connect_for_each_screen(function(s)
         ))
 
         trackify_widget = awful.widget.watch('trackify_last_play.py', 10, function(widget, stdout)
-            widget.text = '🎶 ' .. stdout
+            widget.text = stdout
         end)
 
         create_topbar(s)
@@ -763,7 +763,7 @@ client.connect_signal("request::titlebars", function(c)
         end)
     )
 
-    local c_titlebar = awful.titlebar(c, {size = 25})
+    local c_titlebar = awful.titlebar(c, {size = 15})
     c_titlebar : setup {
         { -- Left
             awful.titlebar.widget.iconwidget(c),
