@@ -485,6 +485,12 @@ globalkeys = gears.table.join(
     awful.key({ modkey, "Mod1" }, "j", function()
         volume_widget:update_increase(-3)
     end, {description = "decrease volume", group = 'volume'}),
+    awful.key({ modkey, "Mod1" }, "l", function()
+        bluetooth_volume_widget:update_increase(3)
+    end, {description = "increase bluetooth volume", group = 'volume'}),
+    awful.key({ modkey, "Mod1" }, "h", function()
+        bluetooth_volume_widget:update_increase(-3)
+    end, {description = "decrease bluetooth volume", group = 'volume'}),
 
     --awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
     --{description = "increase master width factor", group = "layout"}),
