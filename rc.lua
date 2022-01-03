@@ -178,6 +178,12 @@ battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f4 | tr -d ','"]
     end
 )
 
+headset_battery_widget = awful.widget.watch('current_headset_battery.sh', 30,
+    function(widget, stdout)
+        widget.text = stdout
+    end
+)
+
 function create_topbar(s)
 
   s.topbar = awful.wibar({position="top", screen=s, height=45})
@@ -228,6 +234,8 @@ function create_topbar(s)
                 --    image = '/home/mahmooz/data/icons/rs3.jpg'
                 --},
                 --rs3_widget,
+                headset_battery_widget,
+                create_separator(),
                 battery_widget,
                 create_separator(),
                 dl_traffic_widget,
@@ -331,8 +339,7 @@ awful.screen.connect_for_each_screen(function(s)
                         },
                         layout = wibox.layout.fixed.horizontal,
                     },
-                    left  = 10,
-                    right = 10,
+                    right = 5,
                     widget = wibox.container.margin
                 },
                 id     = 'background_role',
@@ -675,6 +682,11 @@ root.keys(globalkeys)
 
 -- Rules to apply to new clients (through the "manage" signal).
 awful.rules.rules = {
+    { rule_any = { instance = { "Nightly", "Navigator", "Firefox", "firefox" } }, -- firefox
+      properties = { tag = "3" } },
+    { rule = { name = "Spotify" },
+      properties = { tag = "2" } },
+
     -- All clients will match this rule.
     { rule = { },
       properties = {
