@@ -15,8 +15,8 @@ function text_button:new(text, onclick)
     widget.color = 'white'
     widget.stored_text = text
     widget:connect_signal('mouse::enter', function(w)
-        w.markup = '<span foreground="black">' .. w.stored_text .. '</span>'
-        w.color = 'black'
+        w.markup = '<span foreground="grey">' .. w.stored_text .. '</span>'
+        w.color = 'grey'
     end)
     widget:connect_signal('mouse::leave', function(w)
         w.markup = '<span foreground="white">' .. w.stored_text .. '</span>'
