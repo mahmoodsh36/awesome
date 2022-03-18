@@ -71,7 +71,7 @@ myawesomemenu = {
 }
 appsmenu = {
     { "kitty", "kitty -e tmux" },
-    { "vifm", "alacritty -e tmux new-session \\; send-keys 'vifm; exit' C-m  \\;" },
+    { "vifm", "terminal_with_cmd.sh vifm" },
     { "spotify", "spotify" },
     { "firefox", "firefox" },
     { "emacs", "emacs" },
@@ -178,7 +178,7 @@ battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f4 | tr -d ','"]
     end
 )
 
-headset_battery_widget = awful.widget.watch('current_headset_battery.sh', 30,
+headset_battery_widget = awful.widget.watch('current_headset_battery.sh', 10,
     function(widget, stdout)
         widget.text = stdout
     end
@@ -435,36 +435,36 @@ globalkeys = gears.table.join(
         end,
         {description = "focus right", group = "client"}),
 
-    -- Layout manipulation
     awful.key({ modkey, "Control"   }, "l",
         function ()
             client.focus.x = client.focus.x + 20
         end,
-        {description = "increase master width factor", group = "layout"}),
+        {description = "move the client forward", group = "layout"}),
     awful.key({ modkey, "Control"   }, "h",
         function ()
             client.focus.x = client.focus.x - 20
         end,
-        {description = "decrease master width factor", group = "layout"}),
+        {description = "move the client upward", group = "layout"}),
     awful.key({ modkey, "Control"   }, "k",
         function ()
             client.focus.y = client.focus.y - 20
         end,
-        {description = "decrease master width factor", group = "layout"}),
+        {description = "move the client backward", group = "layout"}),
     awful.key({ modkey, "Control"   }, "j",
         function ()
             client.focus.y = client.focus.y + 20
         end,
-        {description = "decrease master width factor", group = "layout"}),
+        {description = "move the client downward", group = "layout"}),
 
-    awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.byidx(  1)    end,
-        {description = "swap with next client by index", group = "client"}),
-    awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.byidx( -1)    end,
-        {description = "swap with previous client by index", group = "client"}),
-    -- awful.key({ modkey, "Control" }, "j", function () awful.screen.focus_relative( 1) end,
-    --     {description = "focus the next screen", group = "screen"}),
-    -- awful.key({ modkey, "Control" }, "k", function () awful.screen.focus_relative(-1) end,
-    --     {description = "focus the previous screen", group = "screen"}),
+    awful.key({ modkey, "Shift"   }, "j", function () awful.client.swap.bydirection("down")    end,
+        {description = "swap with client down", group = "client"}),
+    awful.key({ modkey, "Shift"   }, "k", function () awful.client.swap.bydirection("up")    end,
+        {description = "swap with client up", group = "client"}),
+    awful.key({ modkey, "Shift"   }, "l", function () awful.client.swap.bydirection("right")    end,
+        {description = "swap with client to the right", group = "client"}),
+    awful.key({ modkey, "Shift"   }, "h", function () awful.client.swap.bydirection("left")    end,
+        {description = "swap with client to the left", group = "client"}),
+
     awful.key({ modkey,           }, "u", awful.client.urgent.jumpto,
         {description = "jump to urgent client", group = "client"}),
     awful.key({ modkey,           }, "Tab",
@@ -499,26 +499,12 @@ globalkeys = gears.table.join(
         bluetooth_volume_widget:update_increase(-3)
     end, {description = "decrease bluetooth volume", group = 'volume'}),
 
-    --awful.key({ modkey,           }, "l",     function () awful.tag.incmwfact( 0.05)          end,
-    --{description = "increase master width factor", group = "layout"}),
-    --awful.key({ modkey,           }, "h",     function () awful.tag.incmwfact(-0.05)          end,
-    --{description = "decrease master width factor", group = "layout"}),
-    awful.key({ modkey, "Shift"   }, "h",     function () awful.tag.incnmaster( 1, nil, true) end,
-        {description = "increase the number of master clients", group = "layout"}),
-    awful.key({ modkey, "Shift"   }, "l",     function () awful.tag.incnmaster(-1, nil, true) end,
-        {description = "decrease the number of master clients", group = "layout"}),
-    -- awful.key({ modkey, "Control" }, "h",     function () awful.tag.incncol( 1, nil, true)    end,
-    --           {description = "increase the number of columns", group = "layout"}),
-    -- awful.key({ modkey, "Control" }, "l",     function () awful.tag.incncol(-1, nil, true)    end,
-    -- {description = "decrease the number of columns", group = "layout"}),
     awful.key({ modkey, "Control" }, "space", function ()
         keyboard_widget.switch_layout()
         keyboard_widget.show()
     end, {description = "switch to next keyboard layout", group = "keyboard"}),
     awful.key({ modkey,           }, "space", function () awful.layout.inc( 1)                end,
         {description = "select next", group = "layout"}),
-    --awful.key({ modkey, "Shift"   }, "space", function () awful.layout.inc(-1)                end,
-    --{description = "select previous", group = "layout"}),
 
     awful.key({ modkey, "Control" }, "n",
         function ()
@@ -531,21 +517,6 @@ globalkeys = gears.table.join(
             end
         end,
         {description = "restore minimized", group = "client"}),
-
-    -- Prompt
-    -- awful.key({ modkey }, "r", function () awful.screen.focused().mypromptbox:run() end,
-        -- {description = "run prompt", group = "launcher"}),
-
-    -- awful.key({ modkey }, "x",
-    --     function ()
-    --         awful.prompt.run {
-    --             prompt       = "Run Lua code: ",
-    --             textbox      = awful.screen.focused().mypromptbox.widget,
-    --             exe_callback = awful.util.eval,
-    --             history_path = awful.util.get_cache_dir() .. "/history_eval"
-    --         }
-    --     end,
-    --     {description = "lua execute prompt", group = "awesome"}),
 
     awful.key({ modkey }, "d", function() naughty.destroy_all_notifications() end,
         {description = "lua execute prompt", group = "awesome"})
