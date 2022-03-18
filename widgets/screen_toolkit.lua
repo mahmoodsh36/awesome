@@ -42,25 +42,25 @@ transmission_widget = awful.widget.watch([[sh -c 'transmission-remote -l | grep 
     widget.text = ' ' .. stdout
 end)
 
-eth_widget = awful.widget.watch("get_eth_price.py", 100, function(widget, stdout)
-    widget.text = '' .. stdout
-end)
-
-btc_widget = awful.widget.watch("get_btc_price.py", 100, function(widget, stdout)
-    widget.text = ' ' .. stdout
-end)
-
-hoge_widget = awful.widget.watch("get_hoge_price.py", 100, function(widget, stdout)
-    widget.text = ' ' .. stdout
-end)
-
-doge_widget = awful.widget.watch("get_doge_price.py", 100, function(widget, stdout)
-    widget.text = ' ' .. stdout
-end)
-
-matic_widget = awful.widget.watch("get_matic_price.py", 100, function(widget, stdout)
-    widget.text = ' ' .. stdout
-end)
+--eth_widget = awful.widget.watch("get_eth_price.py", 100, function(widget, stdout)
+--    widget.text = '' .. stdout
+--end)
+--
+--btc_widget = awful.widget.watch("get_btc_price.py", 100, function(widget, stdout)
+--    widget.text = ' ' .. stdout
+--end)
+--
+--hoge_widget = awful.widget.watch("get_hoge_price.py", 100, function(widget, stdout)
+--    widget.text = ' ' .. stdout
+--end)
+--
+--doge_widget = awful.widget.watch("get_doge_price.py", 100, function(widget, stdout)
+--    widget.text = ' ' .. stdout
+--end)
+--
+--matic_widget = awful.widget.watch("get_matic_price.py", 100, function(widget, stdout)
+--    widget.text = ' ' .. stdout
+--end)
 
 local screen_toolkit = {
 }
@@ -97,35 +97,35 @@ function screen_toolkit:new(screen)
                 },
                 {
                     layout = wibox.layout.fixed.horizontal,
-                    wibox.widget {
-                        widget = wibox.widget.imagebox,
-                        image = '/home/mahmooz/data/icons/ethereum.png'
-                    },
-                    eth_widget,
-                    create_separator(),
-                    wibox.widget {
-                        widget = wibox.widget.imagebox,
-                        image = '/home/mahmooz/data/icons/bitcoin.png'
-                    },
-                    btc_widget,
-                    create_separator(),
-                    wibox.widget {
-                        widget = wibox.widget.imagebox,
-                        image = '/home/mahmooz/data/icons/hoge.png'
-                    },
-                    hoge_widget,
-                    create_separator(),
-                    wibox.widget {
-                        widget = wibox.widget.imagebox,
-                        image = '/home/mahmooz/data/icons/doge.png'
-                    },
-                    doge_widget,
-                    create_separator(),
-                    wibox.widget {
-                        widget = wibox.widget.imagebox,
-                        image = '/home/mahmooz/data/icons/matic.png'
-                    },
-                    matic_widget,
+                    --wibox.widget {
+                    --    widget = wibox.widget.imagebox,
+                    --    image = '/home/mahmooz/data/icons/ethereum.png'
+                    --},
+                    --eth_widget,
+                    --create_separator(),
+                    --wibox.widget {
+                    --    widget = wibox.widget.imagebox,
+                    --    image = '/home/mahmooz/data/icons/bitcoin.png'
+                    --},
+                    --btc_widget,
+                    --create_separator(),
+                    --wibox.widget {
+                    --    widget = wibox.widget.imagebox,
+                    --    image = '/home/mahmooz/data/icons/hoge.png'
+                    --},
+                    --hoge_widget,
+                    --create_separator(),
+                    --wibox.widget {
+                    --    widget = wibox.widget.imagebox,
+                    --    image = '/home/mahmooz/data/icons/doge.png'
+                    --},
+                    --doge_widget,
+                    --create_separator(),
+                    --wibox.widget {
+                    --    widget = wibox.widget.imagebox,
+                    --    image = '/home/mahmooz/data/icons/matic.png'
+                    --},
+                    --matic_widget,
                 },
                 {
                     layout = wibox.layout.fixed.horizontal,
