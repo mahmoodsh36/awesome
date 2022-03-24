@@ -11,7 +11,7 @@ local slider_controlled_widget = require("widgets/slider_controlled_widget")
 local text_button = require('widgets/text_button')
 --local navigation_widget = require("widgets/navigation_widget")
 
-awful.spawn('/home/mahmooz/workspace/scripts/startup.sh')
+--awful.spawn('/home/mahmooz/workspace/scripts/startup.sh')
 
 used_theme = "first"
 themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
