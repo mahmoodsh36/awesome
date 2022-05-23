@@ -172,9 +172,9 @@ spotify_widget_timer = gears.timer {
     end
 }
 
-battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f4 | tr -d ','"]], 1,
+battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f3,4 | tr -d ','"]], 1,
     function(widget, stdout)
-        widget.text = 'BAT ' .. stdout
+        widget.text = stdout
     end
 )
 
@@ -253,7 +253,7 @@ function create_topbar(s)
             layout  = wibox.layout.align.horizontal,
             {
                 layout = wibox.layout.fixed.horizontal,
-                trackify_widget,
+                --trackify_widget,
             },
             {
                 layout = wibox.layout.fixed.horizontal,
@@ -752,7 +752,7 @@ client.connect_signal("request::titlebars", function(c)
         end)
     )
 
-    local c_titlebar = awful.titlebar(c, {size = 15})
+    local c_titlebar = awful.titlebar(c, {size = 13})
     c_titlebar : setup {
         { -- Left
             awful.titlebar.widget.iconwidget(c),
