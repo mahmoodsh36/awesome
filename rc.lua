@@ -11,7 +11,7 @@ local slider_controlled_widget = require("widgets/slider_controlled_widget")
 local text_button = require('widgets/text_button')
 --local navigation_widget = require("widgets/navigation_widget")
 
---awful.spawn('/home/mahmooz/workspace/scripts/startup.sh')
+awful.spawn('/home/mahmooz/workspace/scripts/startup.sh')
 
 used_theme = "first"
 themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
@@ -166,7 +166,7 @@ spotify_widget_timer = gears.timer {
         awful.spawn.easy_async(
             {"current_spotify_song.sh"},
             function(out)
-                spotify_widget:change_text(out)
+                spotify_widget:change_text('🤘🎶 ' .. out)
             end
         )
     end
@@ -174,7 +174,7 @@ spotify_widget_timer = gears.timer {
 
 battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f3,4 | tr -d ','"]], 1,
     function(widget, stdout)
-        widget.text = stdout
+        widget.text = '🔋' .. stdout
     end
 )
 
@@ -407,8 +407,11 @@ globalkeys = gears.table.join(
         {description = "view previous", group = "tag"}),
     awful.key({ modkey,           }, "Right",  awful.tag.viewnext,
         {description = "view next", group = "tag"}),
-    awful.key({ modkey,           }, "Escape", awful.tag.history.restore,
-        {description = "go back", group = "tag"}),
+    awful.key({ modkey,           }, "Escape",
+      function()
+        awful.client.focus.byidx(1) --awful.tag.history.restore,
+      end,
+      {description = "switch clients", group = "client"}),
     -- By direction client focus
     awful.key({ modkey }, "j",
         function()

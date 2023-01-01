@@ -16,7 +16,7 @@ end)
 
 storage_widget = awful.widget.watch([[sh -c "df -h | awk '/\\/$/ {print $3 \"/\" $2}'"]], 1,
 function(widget, stdout)
-    widget.text = 'STORAGE ' .. stdout
+    widget.text = '💽 ' .. stdout
 end)
 
 
@@ -29,12 +29,12 @@ last_tx_bytes = 0
 last_rx_bytes = 0
 ul_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/tx_bytes', 1, function(widget, stdout)
     current_tx_bytes = tonumber(stdout)
-    widget.text = 'UP ' .. tostring(math.floor((current_tx_bytes - last_tx_bytes) / 1000)) .. 'kb/s'
+    widget.text = '⬆ ' .. tostring(math.floor((current_tx_bytes - last_tx_bytes) / 1000)) .. 'kb/s'
     last_tx_bytes = current_tx_bytes
 end)
 dl_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/rx_bytes', 1, function(widget, stdout)
     current_rx_bytes = tonumber(stdout)
-    widget.text = 'DL ' .. tostring(math.floor((current_rx_bytes - last_rx_bytes) / 1000)) .. 'kb/s'
+    widget.text = '⬇ ' .. tostring(math.floor((current_rx_bytes - last_rx_bytes) / 1000)) .. 'kb/s'
     last_rx_bytes = current_rx_bytes
 end)
 
