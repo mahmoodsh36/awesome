@@ -9,9 +9,10 @@ local brightness_widget = require("widgets/brightness_widget")
 local keyboard_widget = require("widgets/keyboard_widget")
 local slider_controlled_widget = require("widgets/slider_controlled_widget")
 local text_button = require('widgets/text_button')
+-- local bluetooth_volume_widget = require("widgets/bluetooth_volume_widget")
 --local navigation_widget = require("widgets/navigation_widget")
 
-awful.spawn('/home/mahmooz/workspace/scripts/startup.sh')
+-- awful.spawn('/home/mahmooz/workspace/scripts/startup.sh')
 
 used_theme = "first"
 themes_dir = gears.filesystem.get_configuration_dir() .. 'themes/'
@@ -20,14 +21,14 @@ modkey = "Mod4"
 
 beautiful.init(themes_dir .. used_theme .. '/theme.lua')
 
-local screen_toolkit = require("widgets/screen_toolkit")
+-- local screen_toolkit = require("widgets/screen_toolkit")
 
 -- local panel = require("widgets/panel")
 
 if awesome.startup_errors then
-    naughty.notify({ preset = naughty.config.presets.critical,
-                     title = "Oops, there were errors during startup!",
-                     text = awesome.startup_errors })
+  naughty.notify({ preset = naughty.config.presets.critical,
+                   title = "Oops, there were errors during startup!",
+                   text = awesome.startup_errors })
 end
 
 do
@@ -42,6 +43,8 @@ do
         in_error = false
     end)
 end
+
+-- naughty.config.defaults.timeout = 0 -- keep notifications forever (until dismissed)
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
@@ -70,13 +73,14 @@ myawesomemenu = {
     { "reboot", function() os.execute('reboot') end },
 }
 appsmenu = {
-    { "kitty", "kitty -e tmux" },
+    { "kitty", "kitty" },
     { "vifm", "terminal_with_cmd.sh vifm" },
     { "spotify", "spotify" },
     { "firefox", "firefox" },
     { "emacs", "emacs" },
     { "discord", "discord" },
-    { "scrcpy", "scrcpy" }
+    { "scrcpy", "scrcpy" },
+    { "pcmanfm", "pcmanfm" }
 }
 
 mymainmenu = awful.menu({
@@ -108,180 +112,225 @@ local taglist_buttons = gears.table.join(
 )
 
 local tasklist_buttons = gears.table.join(
-    awful.button({ }, 1, function (c)
-        if c == client.focus then
-            c.minimized = true
-        else
-            c:emit_signal(
-                "request::activate",
-                "tasklist",
-                {raise = true}
-            )
-        end
-    end),
-    awful.button({ }, 3, function()
-        awful.menu.client_list({ theme = { width = 250 } })
-    end),
-    awful.button({ }, 4, function ()
-        awful.client.focus.byidx(1)
-    end),
-    awful.button({ }, 5, function ()
-        awful.client.focus.byidx(-1)
-    end)
+  awful.button({ }, 1,
+    function (c)
+      if c == client.focus then
+        c.minimized = true
+      else
+        c:emit_signal(
+          "request::activate",
+          "tasklist",
+          {raise = true}
+        )
+      end
+  end),
+  awful.button({ }, 3, function()
+      awful.menu.client_list({ theme = { width = 250 } })
+  end),
+  awful.button({ }, 4, function ()
+      awful.client.focus.byidx(1)
+  end),
+  awful.button({ }, 5, function ()
+      awful.client.focus.byidx(-1)
+  end)
 )
 
 local function set_wallpaper(s)
-    -- Wallpaper
-    if beautiful.wallpaper then
-        local wallpaper = beautiful.wallpaper
-        -- If wallpaper is a function, call it with the screen
-        if type(wallpaper) == "function" then
-            wallpaper = wallpaper(s)
-        end
-        gears.wallpaper.maximized(wallpaper, s, true)
+  -- Wallpaper
+  if beautiful.wallpaper then
+    local wallpaper = beautiful.wallpaper
+    -- If wallpaper is a function, call it with the screen
+    if type(wallpaper) == "function" then
+      wallpaper = wallpaper(s)
     end
+    gears.wallpaper.maximized(wallpaper, s, true)
+  end
 end
 
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 --screen.connect_signal("property::geometry", set_wallpaper)
 
 function create_separator()
-    return wibox.widget {
-        widget = wibox.widget.separator,
-        forced_width = 15,
-        orientation = 'vertical',
-    }
+  return wibox.widget {
+    widget = wibox.widget.separator,
+    forced_width = 15,
+    orientation = 'vertical',
+  }
 end
 
-spotify_widget = text_button:new('song here', function()
+spotify_widget = text_button:new(
+  'song here',
+  function()
     awful.spawn('spotify_lyrics.sh')
-end)
+  end
+)
 
 spotify_widget_timer = gears.timer {
-    timeout     = 0.35,
-    call_now    = true,
-    autostart   = true,
-    single_shot = false,
-    callback = function()
-        awful.spawn.easy_async(
-            {"current_spotify_song.sh"},
-            function(out)
-                spotify_widget:change_text('🤘🎶 ' .. out)
-            end
-        )
-    end
+  timeout     = 2,
+  call_now    = true,
+  autostart   = true,
+  single_shot = false,
+  callback = function()
+    awful.spawn.easy_async(
+      {"current_spotify_song.sh"},
+      function(out)
+        spotify_widget:change_text('🤘🎶 ' .. out)
+      end
+    )
+  end
 }
 
-battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f3,4 | tr -d ','"]], 1,
-    function(widget, stdout)
-        widget.text = '🔋' .. stdout
-    end
+battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f3,4 | tr -d ','"]], 5,
+  function(widget, stdout)
+    widget.text = '🔋' .. stdout
+  end
 )
 
 headset_battery_widget = awful.widget.watch('current_headset_battery.sh', 10,
-    function(widget, stdout)
-        widget.text = stdout
-    end
+                                            function(widget, stdout)
+                                              widget.text = stdout
+                                            end
 )
+
+memory_widget = awful.widget.watch('sh -c "free -h | awk \'/Mem/ {print $3 \\"/\\" $2}\'"', 2,
+function(widget, stdout)
+    widget.text = 'MEM ' .. stdout
+end)
+
+storage_widget = awful.widget.watch([[sh -c "df -h | awk '/\\/$/ {print $3 \"/\" $2}'"]], 30,
+function(widget, stdout)
+    widget.text = '💽 ' .. stdout
+end)
+
+
+time_widget = awful.widget.watch('date "+%H:%M:%S (%a) %d/%m/%y"', 1,
+function(widget, stdout)
+    widget.text = stdout
+end)
+
+last_tx_bytes = 0
+last_rx_bytes = 0
+ul_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/tx_bytes', 1, function(widget, stdout)
+    current_tx_bytes = tonumber(stdout)
+    widget.text = '⬆ ' .. tostring(math.floor((current_tx_bytes - last_tx_bytes) / 1000)) .. 'kb/s'
+    last_tx_bytes = current_tx_bytes
+end)
+dl_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/rx_bytes', 1, function(widget, stdout)
+    current_rx_bytes = tonumber(stdout)
+    widget.text = '⬇ ' .. tostring(math.floor((current_rx_bytes - last_rx_bytes) / 1000)) .. 'kb/s'
+    last_rx_bytes = current_rx_bytes
+end)
 
 function create_topbar(s)
 
-  s.topbar = awful.wibar({position="top", screen=s, height=45})
+  s.topbar = awful.wibar({position="top", screen=s, height=70*(2/3)})
 
-    s.topbar:setup {
-        visible = true,
-        layout = wibox.layout.flex.vertical,
-        wibox.widget {
-            layout = wibox.layout.align.horizontal,
-            forced_height = 25,
-            { -- Left widgets
-                layout = wibox.layout.fixed.horizontal,
-                s.mytaglist,
-                s.mypromptbox,
-            },
-            {
-                layout = wibox.layout.fixed.horizontal,
-            },
-            { -- Right widgets
-                layout = wibox.layout.fixed.horizontal,
-                spotify_widget,
-                create_separator(),
-                volume_widget.widget,
-                create_separator(),
-                time_widget,
-                create_separator(),
-                wibox.widget.systray(),
-                create_separator(),
-                s.mylayoutbox,
-            },
-        },
-        wibox.widget {
-            layout  = wibox.layout.align.horizontal,
-            s.windowslist,
-            {
-                layout = wibox.layout.fixed.horizontal,
-            },
-            {
-                layout = wibox.layout.fixed.horizontal,
-                --wibox.widget {
-                --    widget = wibox.widget.imagebox,
-                --    image = '/home/mahmooz/data/icons/osrs.png'
-                --},
-                --osrs_widget,
-                --create_separator(),
-                --wibox.widget {
-                --    widget = wibox.widget.imagebox,
-                --    image = '/home/mahmooz/data/icons/rs3.jpg'
-                --},
-                --rs3_widget,
-                headset_battery_widget,
-                create_separator(),
-                battery_widget,
-                create_separator(),
-                dl_traffic_widget,
-                create_separator(),
-                ul_traffic_widget,
-                create_separator(),
-                --create_separator(),
-                memory_widget,
-                create_separator(),
-                storage_widget,
-            }
-        },
-        wibox.widget {
-
-            layout  = wibox.layout.align.horizontal,
-            {
-                layout = wibox.layout.fixed.horizontal,
-                --trackify_widget,
-            },
-            {
-                layout = wibox.layout.fixed.horizontal,
-            },
-            {
-                layout = wibox.layout.fixed.horizontal,
-                --eth_widget,
-                --create_separator(),
-                --btc_widget,
-                --create_separator(),
-                --wibox.widget {
-                --    widget = wibox.widget.imagebox,
-                --    image = '/home/mahmooz/data/icons/android.png',
-                --    buttons = gears.table.join(
-                --        awful.button({}, 1, nil, function ()
-                --                awful.spawn('scrcpy')
-                --        end)
-                --    )
-                --},
-                create_separator(),
-                restart_networkmanager_button,
-                create_separator(),
-                bluetooth_volume_widget.widget,
-                create_separator(),
-                brightness_widget.widget,
-            }
-        }
+  s.topbar:setup {
+    visible = true,
+    layout = wibox.layout.flex.vertical,
+    wibox.widget {
+      layout = wibox.layout.align.horizontal,
+      forced_height = 25,
+      { -- Left widgets
+        layout = wibox.layout.fixed.horizontal,
+        s.mytaglist,
+        s.mypromptbox,
+        create_separator(),
+        spotify_widget,
+      },
+      {
+        layout = wibox.layout.fixed.horizontal,
+      },
+      { -- Right widgets
+        layout = wibox.layout.fixed.horizontal,
+        storage_widget,
+        create_separator(),
+        brightness_widget.widget,
+        create_separator(),
+        battery_widget,
+        create_separator(),
+        volume_widget.widget,
+        create_separator(),
+        time_widget,
+        create_separator(),
+        wibox.widget.systray(),
+        create_separator(),
+        s.mylayoutbox,
+      },
+    },
+    wibox.widget {
+      layout  = wibox.layout.align.horizontal,
+      s.windowslist,
+      {
+        layout = wibox.layout.fixed.horizontal,
+      },
+      {
+        layout = wibox.layout.fixed.horizontal,
+        --wibox.widget {
+        --    widget = wibox.widget.imagebox,
+        --    image = '/home/mahmooz/data/icons/osrs.png'
+        --},
+        --osrs_widget,
+        --create_separator(),
+        --wibox.widget {
+        --    widget = wibox.widget.imagebox,
+        --    image = '/home/mahmooz/data/icons/rs3.jpg'
+        --},
+        --rs3_widget,
+        headset_battery_widget,
+        create_separator(),
+        dl_traffic_widget,
+        create_separator(),
+        ul_traffic_widget,
+        create_separator(),
+        memory_widget,
+        create_separator(),
+        keyboard_layout_widget,
+        create_separator(),
+        menubutton,
+        create_separator(),
+        restart_networkmanager_button,
+        -- create_separator(),
+        -- bluetooth_volume_widget.widget,
+      }
     }
+    -- wibox.widget {
+
+    --   layout  = wibox.layout.align.horizontal,
+    --   {
+    --     layout = wibox.layout.fixed.horizontal,
+    --     --trackify_widget,
+    --   },
+    --   {
+    --     layout = wibox.layout.fixed.horizontal,
+    --   },
+    --   {
+    --     layout = wibox.layout.fixed.horizontal,
+    --     --eth_widget,
+    --     --create_separator(),
+    --     --btc_widget,
+    --     --create_separator(),
+    --     --wibox.widget {
+    --     --    widget = wibox.widget.imagebox,
+    --     --    image = '/home/mahmooz/data/icons/android.png',
+    --     --    buttons = gears.table.join(
+    --     --        awful.button({}, 1, nil, function ()
+    --     --                awful.spawn('scrcpy')
+    --     --        end)
+    --     --    )
+    --     --},
+    --     -- keyboard_layout_widget,
+    --     -- create_separator(),
+    --     -- menubutton,
+    --     -- create_separator(),
+    --     -- restart_networkmanager_button,
+    --     -- create_separator(),
+    --     -- bluetooth_volume_widget.widget,
+    --     -- create_separator(),
+    --     -- brightness_widget.widget,
+    --   }
+    -- }
+  }
 end
 
 awful.screen.connect_for_each_screen(function(s)
@@ -351,21 +400,21 @@ awful.screen.connect_for_each_screen(function(s)
 
         -- Create the wibox
 
-        keyboard_layout_widget = awful.widget.watch("sh -c \"setxkbmap -query | awk '/layout/ {print $2}'\"", 1,
+        keyboard_layout_widget = awful.widget.watch("sh -c \"setxkbmap -query | awk '/layout/ {print $2}'\"", 2,
         function(widget, stdout)
             widget.text = '⌨ ' .. stdout
         end)
 
-        wifi_widget = awful.widget.watch([[zsh -c '( sudo wpa_cli -i wlp0s20f3 status; sudo wpa_cli -i wlp0s20f3 signal_poll ) | grep "^\(ssid\|RSSI\)" | cut -d "=" -f2 | tr "\n" " " | read wifi rssi; echo $wifi $rssi']], 1, function(widget, stdout)
-            widget.text = '📶 ' .. stdout
-        end)
+        -- wifi_widget = awful.widget.watch([[zsh -c '( sudo wpa_cli -i wlp0s20f3 status; sudo wpa_cli -i wlp0s20f3 signal_poll ) | grep "^\(ssid\|RSSI\)" | cut -d "=" -f2 | tr "\n" " " | read wifi rssi; echo $wifi $rssi']], 1, function(widget, stdout)
+        --     widget.text = '📶 ' .. stdout
+        -- end)
 
-        rs3_widget = awful.widget.watch('rs_player_count.py rs3', 7, function(widget, stdout)
-            widget.text = ' ' .. stdout
-        end)
-        osrs_widget = awful.widget.watch('rs_player_count.py osrs', 7, function(widget, stdout)
-            widget.text = ' ' .. stdout
-        end)
+        -- rs3_widget = awful.widget.watch('rs_player_count.py rs3', 7, function(widget, stdout)
+        --     widget.text = ' ' .. stdout
+        -- end)
+        -- osrs_widget = awful.widget.watch('rs_player_count.py osrs', 7, function(widget, stdout)
+        --     widget.text = ' ' .. stdout
+        -- end)
 
         restart_networkmanager_button = wibox.widget {
             {
@@ -376,7 +425,7 @@ awful.screen.connect_for_each_screen(function(s)
             },
             widget = wibox.container.background,
             bg = beautiful.bg_focus,
-            fg = beautiful.bg_normal,
+            fg = beautiful.fg_focus,
             shape = gears.shape.rounded_rect
         }
         restart_networkmanager_button.button:buttons(gears.table.join(
@@ -386,19 +435,38 @@ awful.screen.connect_for_each_screen(function(s)
             end)
         ))
 
-        trackify_widget = awful.widget.watch('trackify_last_play.py', 10, function(widget, stdout)
-            widget.text = stdout
+        menubutton = wibox.widget {
+          {
+            widget = wibox.widget.textbox,
+            id = 'button',
+            text = ' run app ',
+            align = 'center',
+          },
+          widget = wibox.container.background,
+          bg = beautiful.bg_focus,
+          fg = beautiful.fg_focus,
+          shape = gears.shape.rounded_rect
+        }
+        menubutton.button:buttons(gears.table.join(
+        menubutton:buttons(),
+        awful.button({}, 1, nil, function ()
+          awful.spawn([[rofi -modi drun,run -show drun -font "DejaVu Sans 20" -show-icons]])
         end)
+        ))
+
+        -- trackify_widget = awful.widget.watch('trackify_last_play.py', 10, function(widget, stdout)
+        --     widget.text = stdout
+        -- end)
 
         create_topbar(s)
 end)
 
 -- Mouse bindings
 root.buttons(gears.table.join(
-    awful.button({ }, 1, function () mymainmenu:hide() end),
-    awful.button({ }, 3, function () mymainmenu:toggle() end),
-    awful.button({ }, 4, awful.tag.viewnext),
-    awful.button({ }, 5, awful.tag.viewprev)
+    --awful.button({ }, 1, function () mymainmenu:toggle() end),
+    -- awful.button({ }, 3, function () mymainmenu:hide() end),
+    --awful.button({ }, 4, awful.tag.viewnext),
+    --awful.button({ }, 5, awful.tag.viewprev)
 ))
 
 -- Key bindings
@@ -496,10 +564,10 @@ globalkeys = gears.table.join(
         volume_widget:update_increase(-3)
     end, {description = "decrease volume", group = 'volume'}),
     awful.key({ modkey, "Mod1" }, "l", function()
-        bluetooth_volume_widget:update_increase(3)
+        brightness_widget:update_increase(3)
     end, {description = "increase bluetooth volume", group = 'volume'}),
     awful.key({ modkey, "Mod1" }, "h", function()
-        bluetooth_volume_widget:update_increase(-3)
+        brightness_widget:update_increase(-3)
     end, {description = "decrease bluetooth volume", group = 'volume'}),
 
     awful.key({ modkey, "Control" }, "space", function ()
@@ -529,6 +597,11 @@ clientkeys = gears.table.join(
     awful.key({ modkey }, "f",
         function (c)
             c.fullscreen = not c.fullscreen
+            if c.fullscreen then
+              c.shape = gears.shape.rect -- if full screen no rounded corners
+            else
+              c.shape = gears.shape.rounded_rect -- if full screen no rounded corners
+            end
             c:raise()
         end,
         {description = "toggle fullscreen", group = "client"}),
@@ -559,6 +632,11 @@ clientkeys = gears.table.join(
     awful.key({ modkey,           }, "m",
         function (c)
             c.maximized = not c.maximized
+            if c.maximized then
+              awful.titlebar.hide(c)
+            else
+              awful.titlebar.show(c)
+            end
             c:raise()
         end ,
         {description = "(un)maximize", group = "client"}),
@@ -740,9 +818,6 @@ end)
 
 -- Add a titlebar if titlebars_enabled is set to true in the rules.
 client.connect_signal("request::titlebars", function(c)
-    if c.name == 'desktop_toolkit' then
-        return
-    end
     -- buttons for the titlebar
     local buttons = gears.table.join(
         awful.button({ }, 1, function()
@@ -755,7 +830,7 @@ client.connect_signal("request::titlebars", function(c)
         end)
     )
 
-    local c_titlebar = awful.titlebar(c, {size = 13})
+    local c_titlebar = awful.titlebar(c, {size = 30})
     c_titlebar : setup {
         { -- Left
             awful.titlebar.widget.iconwidget(c),
@@ -772,14 +847,17 @@ client.connect_signal("request::titlebars", function(c)
         },
         { -- Right
             --awful.titlebar.widget.floatingbutton (c),
-            --awful.titlebar.widget.maximizedbutton(c),
+            awful.titlebar.widget.maximizedbutton(c),
             --awful.titlebar.widget.stickybutton   (c),
-            --awful.titlebar.widget.ontopbutton    (c),
+            awful.titlebar.widget.ontopbutton    (c),
             awful.titlebar.widget.closebutton    (c),
             layout = wibox.layout.fixed.horizontal()
         },
         layout = wibox.layout.align.horizontal
     }
+    if c.maximized then
+      awful.titlebar.hide(c)
+    end
 end)
 
 -- Enable sloppy focus, so that focus follows mouse.
@@ -790,9 +868,11 @@ end)
 client.connect_signal("focus",   function(c) c.border_color = beautiful.border_focus  end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 client.connect_signal("manage",  function(c)
-    c.shape = gears.shape.rounded_rect
     if c.fullscreen then
-        c.ontop = true
+      c.shape = gears.shape.rect -- if full screen no rounded corners
+      c.ontop = true
+    else
+      c.shape = gears.shape.rounded_rect -- if full screen no rounded corners
     end
     --navigation_widget.show()
 end)
@@ -800,4 +880,5 @@ client.connect_signal("manage",  function(c)
     --navigation_widget.show()
 end)
 
-gears.timer.start_new(1, function() collectgarbage("step", 20000) return true end)
+-- i think this used to fix a memory leak issue, not sure if still relevant
+gears.timer.start_new(10, function() collectgarbage("step", 20000) return true end)
