@@ -1,7 +1,7 @@
 local slider_controlled_widget = require("widgets/slider_controlled_widget")
 local awful = require("awful")
 
-local MAX_BRIGHTNESS = 120000
+local MAX_BRIGHTNESS = 400
 
 brightness_widget = slider_controlled_widget:new('🔆 ')
 

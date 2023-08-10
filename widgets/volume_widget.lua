@@ -4,11 +4,11 @@ local awful = require("awful")
 volume_widget = slider_controlled_widget:new('🔊 ')
 
 volume_widget.on_slider_input = function(value)
-    awful.spawn('pactl set-sink-volume 0 ' .. tostring(value) .. '%')
+    awful.spawn('sh -c "for i in {0..6}; do pactl set-sink-volume $i ' .. tostring(value) .. '%; done"')
 end
 
 volume_widget.on_update = function(value)
-    awful.spawn('pactl set-sink-volume 0 ' .. tostring(value) .. '%')
+    awful.spawn('sh -c "for i in {0..6}; do pactl set-sink-volume $i ' .. tostring(value) .. '%; done"')
 end
 
 --function volume_widget.update()

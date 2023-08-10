@@ -9,18 +9,18 @@ local bluetooth_volume_widget = require("widgets/bluetooth_volume_widget")
 local spotify_widget = require("widgets/spotify_widget")
 local text_button = require('widgets/text_button')
 
-memory_widget = awful.widget.watch('sh -c "free -h | awk \'/Mem/ {print $3 \\"/\\" $2}\'"', 1,
+memory_widget = awful.widget.watch('sh -c "free -h | awk \'/Mem/ {print $3 \\"/\\" $2}\'"', 2,
 function(widget, stdout)
     widget.text = 'MEM ' .. stdout
 end)
 
-storage_widget = awful.widget.watch([[sh -c "df -h | awk '/\\/$/ {print $3 \"/\" $2}'"]], 1,
+storage_widget = awful.widget.watch([[sh -c "df -h | awk '/\\/$/ {print $3 \"/\" $2}'"]], 30,
 function(widget, stdout)
     widget.text = '💽 ' .. stdout
 end)
 
 
-time_widget = awful.widget.watch('date "+%H:%M:%S (%a) %d/%m/%y"', 1,
+time_widget = awful.widget.watch('date "+%H:%M:%S (%a) %d/%m/%y"', 2,
 function(widget, stdout)
     widget.text = stdout
 end)
