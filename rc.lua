@@ -290,6 +290,8 @@ function create_topbar(s)
         menubutton,
         create_separator(),
         restart_networkmanager_button,
+        create_separator(),
+        onscreen_keyboard_button,
         -- create_separator(),
         -- bluetooth_volume_widget.widget,
       }
@@ -363,8 +365,8 @@ awful.screen.connect_for_each_screen(function(s)
             filter  = awful.widget.tasklist.filter.currenttags,
             buttons = tasklist_buttons,
             style    = {
-                shape_border_width = 1,
-                shape_border_color = '#777777',
+                shape_border_width = 2,
+                shape_border_color = fg_focus,
                 shape  = gears.shape.rounded_bar,
             },
             layout = {
@@ -393,6 +395,7 @@ awful.screen.connect_for_each_screen(function(s)
                 },
                 id     = 'background_role',
                 widget = wibox.container.background,
+                forced_width = 400,
             },
         }
 
@@ -432,6 +435,25 @@ awful.screen.connect_for_each_screen(function(s)
             restart_networkmanager_button:buttons(),
             awful.button({}, 1, nil, function ()
                     awful.spawn([[sh -c "sudo systemctl restart NetworkManager && notify-send 'restarted networkmanager'"]])
+            end)
+        ))
+
+        onscreen_keyboard_button = wibox.widget {
+            {
+                widget = wibox.widget.textbox,
+                id = 'button',
+                text = 'keyboard',
+                align = 'center',
+            },
+            widget = wibox.container.background,
+            bg = beautiful.bg_focus,
+            fg = beautiful.fg_focus,
+            shape = gears.shape.rounded_rect
+        }
+        onscreen_keyboard_button:buttons(gears.table.join(
+            onscreen_keyboard_button:buttons(),
+            awful.button({}, 1, nil, function ()
+                    awful.spawn('onboard')
             end)
         ))
 
@@ -758,6 +780,8 @@ awful.rules.rules = {
       properties = { below = true, focusable = false, requests_no_titlebar = true, raise = false, titlebars_enabled = false, }
     },
 
+    { rule = {name="Onboard"}, properties = { focusable = false } },
+
     -- Floating clients.
     { rule_any = {
           instance = {
@@ -850,6 +874,7 @@ client.connect_signal("request::titlebars", function(c)
             awful.titlebar.widget.maximizedbutton(c),
             --awful.titlebar.widget.stickybutton   (c),
             awful.titlebar.widget.ontopbutton    (c),
+            awful.titlebar.widget.minimizebutton (c),
             awful.titlebar.widget.closebutton    (c),
             layout = wibox.layout.fixed.horizontal()
         },
