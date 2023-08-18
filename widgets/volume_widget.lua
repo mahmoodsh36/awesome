@@ -4,7 +4,7 @@ local awful = require("awful")
 volume_widget = slider_controlled_widget:new('🔊 ')
 
 volume_widget.on_slider_input = function(value)
-    awful.spawn([[sh -c "pacmd list-sinks | grep index | cut -d ':' -f2 | cut -c2- | while read sinkindex; do pactl set-sink-volume $sinkindex ]] .. tostring(value) .. [[%; done]])
+    awful.spawn([[sh -c "pacmd list-sinks | grep index | cut -d ':' -f2 | cut -c2- | while read sinkindex; do pactl set-sink-volume $sinkindex ]] .. tostring(value) .. [[%; done"]])
 end
 
 volume_widget.on_update = function(value)
