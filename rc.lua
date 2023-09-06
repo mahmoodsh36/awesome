@@ -365,7 +365,7 @@ awful.screen.connect_for_each_screen(function(s)
             filter  = awful.widget.tasklist.filter.currenttags,
             buttons = tasklist_buttons,
             style    = {
-                shape_border_width = 2,
+                shape_border_width = 1,
                 shape_border_color = fg_focus,
                 shape  = gears.shape.rounded_bar,
             },
@@ -880,9 +880,6 @@ client.connect_signal("request::titlebars", function(c)
         },
         layout = wibox.layout.align.horizontal
     }
-    if c.maximized then
-      awful.titlebar.hide(c)
-    end
 end)
 
 -- Enable sloppy focus, so that focus follows mouse.
@@ -903,6 +900,18 @@ client.connect_signal("manage",  function(c)
 end)
 client.connect_signal("manage",  function(c)
     --navigation_widget.show()
+  if c.maximized then
+    awful.titlebar.hide(c)
+  else
+    awful.titlebar.show(c)
+  end
+end)
+client.connect_signal("request::geometry",  function(c)
+  if c.maximized then
+    awful.titlebar.hide(c)
+  else
+    awful.titlebar.show(c)
+  end
 end)
 
 -- i think this used to fix a memory leak issue, not sure if still relevant
