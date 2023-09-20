@@ -25,6 +25,7 @@ theme.border_width  = dpi(1)
 theme.border_normal = "#000000"
 theme.border_focus  = "#Ff4500"
 theme.border_marked = "#91231c"
+theme.progress_color = '#00ff00' -- used for progress bars, sliders etc
 
 theme.notification_shape = gears.shape.rounded_rect
 

@@ -4,10 +4,7 @@ require("awful.autofocus") -- autofocus windows when switching workspaces and su
 local wibox = require("wibox")
 local beautiful = require("beautiful")
 local naughty = require("naughty")
-local volume_widget = require("widgets/volume_widget")
-local brightness_widget = require("widgets/brightness_widget")
 local keyboard_widget = require("widgets/keyboard_widget")
-local slider_controlled_widget = require("widgets/slider_controlled_widget")
 local text_button = require('widgets/text_button')
 -- local bluetooth_volume_widget = require("widgets/bluetooth_volume_widget")
 --local navigation_widget = require("widgets/navigation_widget")
@@ -20,6 +17,11 @@ editor = os.getenv("EDITOR") or "vim"
 modkey = "Mod4"
 
 beautiful.init(themes_dir .. used_theme .. '/theme.lua')
+
+-- need to be loaded after beautiful.init to make use of theme
+-- local slider_controlled_widget = require("widgets/slider_controlled_widget")
+local volume_widget = require("widgets/volume_widget")
+local brightness_widget = require("widgets/brightness_widget")
 
 -- local screen_toolkit = require("widgets/screen_toolkit")
 
@@ -180,33 +182,106 @@ spotify_widget_timer = gears.timer {
   end
 }
 
-battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f3,4 | tr -d ','"]], 5,
-  function(widget, stdout)
-    widget.text = '🔋' .. stdout
-  end
-)
+-- battery_widget = awful.widget.watch([[sh -c "acpi | cut -d ' ' -f3,4 | tr -d ','"]], 5,
+battery_widget = wibox.widget {
+  awful.widget.watch('cat /sys/class/power_supply/BAT0/capacity', 5,
+    function(widget, stdout)
+      widget.text = '⚡' .. stdout:gsub('\n', '') .. '%'
+      battery_widget.value = tonumber(stdout)
+    end
+  ),
+  value = 25,
+  forced_width = 150,
+  min_value = 0,
+  max_value = 100,
+  border_color = beautiful.fg_normal,
+  color = beautiful.bg_focus,
+  widget = wibox.container.radialprogressbar,
+}
 
 headset_battery_widget = awful.widget.watch('current_headset_battery.sh', 10,
-                                            function(widget, stdout)
-                                              widget.text = stdout
-                                            end
+  function(widget, stdout)
+    widget.text = stdout
+  end
 )
+function mysplit(inputstr, sep)
+  if sep == nil then
+    sep = "%s"
+  end
+  local t = {}
+  for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
+    table.insert(t, str)
+  end
+  return t
+end
 
-memory_widget = awful.widget.watch('sh -c "free -h | awk \'/Mem/ {print $3 \\"/\\" $2}\'"', 2,
-function(widget, stdout)
-    widget.text = 'MEM ' .. stdout
-end)
+storage_widget = wibox.widget {
+  awful.widget.watch(
+    [[sh -c 'df -h | awk "/\/$/ {print \$3 \" \" \$2}"']], -- returns in the form '<free> <all>'
+    5,
+    function(widget, stdout)
+      free_space = mysplit(stdout:gsub('\n', ''), ' ')[1]
+      all_space = mysplit(stdout:gsub('\n', ''), ' ')[2]
+      widget.text = '💿 ' .. free_space .. '/' .. all_space
+      free_space = free_space:gsub('G', '')
+      all_space = all_space:gsub('G', '')
+      storage_widget.value = tonumber(free_space)
+      storage_widget.max_value = tonumber(all_space)
+    end),
+  value = 25,
+  forced_width = 200,
+  min_value = 0,
+  max_value = 100,
+  border_color = beautiful.fg_normal,
+  color = beautiful.bg_focus,
+  widget = wibox.container.radialprogressbar,
+  -- id = 'mypb'
+}
 
-storage_widget = awful.widget.watch([[sh -c "df -h | awk '/\\/$/ {print $3 \"/\" $2}'"]], 30,
-function(widget, stdout)
-    widget.text = '💽 ' .. stdout
-end)
+-- memory_widget = awful.widget.watch('sh -c "free -h | awk \'/Mem/ {print $3 \\"/\\" $2}\'"', 2,
+-- function(widget, stdout)
+--     widget.text = 'MEM ' .. stdout
+-- end)
+memory_widget = wibox.widget {
+  awful.widget.watch([[sh -c 'free -h | awk "/Mem/ {print \$3 \" \" \$2}"']], 2,
+    function(widget, stdout)
+      free_space = mysplit(stdout:gsub('\n', ''), ' ')[1]
+      all_space = mysplit(stdout:gsub('\n', ''), ' ')[2]
+      widget.text = '💿 ' .. free_space .. '/' .. all_space
+      free_space = free_space:gsub('Gi', '')
+      all_space = all_space:gsub('Gi', '')
+      memory_widget.value = tonumber(free_space)
+      memory_widget.max_value = tonumber(all_space)
+    end),
+  value = 25,
+  forced_width = 200,
+  min_value = 0,
+  max_value = 100,
+  border_color = beautiful.fg_normal,
+  color = beautiful.bg_focus,
+  widget = wibox.container.radialprogressbar,
+}
 
+battery_widget = wibox.widget {
+  awful.widget.watch('cat /sys/class/power_supply/BAT0/capacity', 5,
+    function(widget, stdout)
+      widget.text = '⚡' .. stdout:gsub('\n', '') .. '%'
+      battery_widget.value = tonumber(stdout)
+    end
+  ),
+  value = 25,
+  forced_width = 150,
+  min_value = 0,
+  max_value = 100,
+  border_color = beautiful.fg_normal,
+  color = beautiful.bg_focus,
+  widget = wibox.container.radialprogressbar,
+}
 
 time_widget = awful.widget.watch('date "+%H:%M:%S (%a) %d/%m/%y"', 1,
-function(widget, stdout)
+  function(widget, stdout)
     widget.text = stdout
-end)
+  end)
 
 last_tx_bytes = 0
 last_rx_bytes = 0
@@ -283,8 +358,6 @@ function create_topbar(s)
         create_separator(),
         ul_traffic_widget,
         create_separator(),
-        memory_widget,
-        create_separator(),
         keyboard_layout_widget,
         create_separator(),
         menubutton,
@@ -292,6 +365,8 @@ function create_topbar(s)
         restart_networkmanager_button,
         create_separator(),
         onscreen_keyboard_button,
+        create_separator(),
+        memory_widget,
         -- create_separator(),
         -- bluetooth_volume_widget.widget,
       }
@@ -340,7 +415,7 @@ awful.screen.connect_for_each_screen(function(s)
         -- set_wallpaper(s)
 
         -- Each screen has its own tag table.
-        awful.tag({ "1", "2", "3", "4", "5", "6", "7", "8", "9" }, s, awful.layout.layouts[1])
+        awful.tag({ "1", "2", "3", "4", "5", }, s, awful.layout.layouts[1])
 
         -- Create a promptbox for each screen
         s.mypromptbox = awful.widget.prompt()
@@ -467,7 +542,7 @@ awful.screen.connect_for_each_screen(function(s)
           widget = wibox.container.background,
           bg = beautiful.bg_focus,
           fg = beautiful.fg_focus,
-          shape = gears.shape.rounded_rect
+          shape = gears.shape.rounded_rect,
         }
         menubutton.button:buttons(gears.table.join(
         menubutton:buttons(),

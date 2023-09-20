@@ -47,9 +47,9 @@ function slider_controlled_widget:new(icon_text)
         {
             bar_shape           = gears.shape.rounded_rect,
             bar_height          = 3,
-            bar_color           = '#777777',
-            bar_active_color    = '#00ff00',
-            handle_color        = '#cccccc',
+            bar_color           = beautiful.fg_normal,-- '#777777',
+            bar_active_color    = beautiful.bg_focus,
+            handle_color        = beautiful.fg_focus,
             handle_shape        = gears.shape.circle,
             handle_border_color = beautiful.border_color,
             handle_border_width = 1,
