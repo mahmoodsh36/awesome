@@ -168,15 +168,15 @@ spotify_widget = text_button:new(
 )
 
 spotify_widget_timer = gears.timer {
-  timeout     = 2,
+  timeout     = 0.15,
   call_now    = true,
   autostart   = true,
   single_shot = false,
   callback = function()
-    awful.spawn.easy_async(
-      {"current_spotify_song.sh"},
+    awful.spawn.easy_async_with_shell(
+      [[name=$(echo "{ \"command\": [\"get_property\", \"metadata\"] }" | socat - /tmp/mpv_socket | jq -j ".data | .title + \" - \" + .artist + \" \" + .track + \" \" + .disc"); subtitles=$(echo '{ "command": ["get_property", "sub-text"] }' | socat - /tmp/mpv_socket | jq -j '.data?'); echo -n "$name $subtitles"]],
       function(out)
-        spotify_widget:change_text('🤘🎶 ' .. out)
+        spotify_widget:change_text(' ' .. out)
       end
     )
   end
@@ -186,7 +186,7 @@ spotify_widget_timer = gears.timer {
 battery_widget = wibox.widget {
   awful.widget.watch('cat /sys/class/power_supply/BAT0/capacity', 5,
     function(widget, stdout)
-      widget.text = '⚡' .. stdout:gsub('\n', '') .. '%'
+      widget.text = '  ' .. stdout:gsub('\n', '') .. '%'
       battery_widget.value = tonumber(stdout)
     end
   ),
@@ -199,11 +199,11 @@ battery_widget = wibox.widget {
   widget = wibox.container.radialprogressbar,
 }
 
-headset_battery_widget = awful.widget.watch('current_headset_battery.sh', 10,
-  function(widget, stdout)
-    widget.text = stdout
-  end
-)
+-- headset_battery_widget = awful.widget.watch('current_headset_battery.sh', 10,
+--   function(widget, stdout)
+--     widget.text = stdout
+--   end
+-- )
 function mysplit(inputstr, sep)
   if sep == nil then
     sep = "%s"
@@ -222,7 +222,7 @@ storage_widget = wibox.widget {
     function(widget, stdout)
       free_space = mysplit(stdout:gsub('\n', ''), ' ')[1]
       all_space = mysplit(stdout:gsub('\n', ''), ' ')[2]
-      widget.text = '💿 ' .. free_space .. '/' .. all_space
+      widget.text = '  ' .. free_space .. '/' .. all_space
       free_space = free_space:gsub('G', '')
       all_space = all_space:gsub('G', '')
       storage_widget.value = tonumber(free_space)
@@ -247,7 +247,7 @@ memory_widget = wibox.widget {
     function(widget, stdout)
       free_space = mysplit(stdout:gsub('\n', ''), ' ')[1]
       all_space = mysplit(stdout:gsub('\n', ''), ' ')[2]
-      widget.text = '💿 ' .. free_space .. '/' .. all_space
+      widget.text = ' MEM ' .. free_space .. '/' .. all_space
       free_space = free_space:gsub('Gi', '')
       all_space = all_space:gsub('Gi', '')
       memory_widget.value = tonumber(free_space)
@@ -255,22 +255,6 @@ memory_widget = wibox.widget {
     end),
   value = 25,
   forced_width = 200,
-  min_value = 0,
-  max_value = 100,
-  border_color = beautiful.fg_normal,
-  color = beautiful.bg_focus,
-  widget = wibox.container.radialprogressbar,
-}
-
-battery_widget = wibox.widget {
-  awful.widget.watch('cat /sys/class/power_supply/BAT0/capacity', 5,
-    function(widget, stdout)
-      widget.text = '⚡' .. stdout:gsub('\n', '') .. '%'
-      battery_widget.value = tonumber(stdout)
-    end
-  ),
-  value = 25,
-  forced_width = 150,
   min_value = 0,
   max_value = 100,
   border_color = beautiful.fg_normal,
@@ -287,12 +271,12 @@ last_tx_bytes = 0
 last_rx_bytes = 0
 ul_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/tx_bytes', 1, function(widget, stdout)
     current_tx_bytes = tonumber(stdout)
-    widget.text = '⬆ ' .. tostring(math.floor((current_tx_bytes - last_tx_bytes) / 1000)) .. 'kb/s'
+    widget.text = '▲ ' .. tostring(math.floor((current_tx_bytes - last_tx_bytes) / 1000)) .. 'kb/s'
     last_tx_bytes = current_tx_bytes
 end)
 dl_traffic_widget = awful.widget.watch('cat /sys/class/net/wlp0s20f3/statistics/rx_bytes', 1, function(widget, stdout)
     current_rx_bytes = tonumber(stdout)
-    widget.text = '⬇ ' .. tostring(math.floor((current_rx_bytes - last_rx_bytes) / 1000)) .. 'kb/s'
+    widget.text = '▼ ' .. tostring(math.floor((current_rx_bytes - last_rx_bytes) / 1000)) .. 'kb/s'
     last_rx_bytes = current_rx_bytes
 end)
 
@@ -352,13 +336,14 @@ function create_topbar(s)
         --    image = '/home/mahmooz/data/icons/rs3.jpg'
         --},
         --rs3_widget,
-        headset_battery_widget,
-        create_separator(),
+        -- create_separator(),
+        -- headset_battery_widget,
+        -- create_separator(),
         dl_traffic_widget,
         create_separator(),
         ul_traffic_widget,
         create_separator(),
-        keyboard_layout_widget,
+        memory_widget,
         create_separator(),
         menubutton,
         create_separator(),
@@ -366,7 +351,9 @@ function create_topbar(s)
         create_separator(),
         onscreen_keyboard_button,
         create_separator(),
-        memory_widget,
+        keyboard_layout_widget,
+        create_separator(),
+        wifi_widget,
         -- create_separator(),
         -- bluetooth_volume_widget.widget,
       }
@@ -483,9 +470,9 @@ awful.screen.connect_for_each_screen(function(s)
             widget.text = '⌨ ' .. stdout
         end)
 
-        -- wifi_widget = awful.widget.watch([[zsh -c '( sudo wpa_cli -i wlp0s20f3 status; sudo wpa_cli -i wlp0s20f3 signal_poll ) | grep "^\(ssid\|RSSI\)" | cut -d "=" -f2 | tr "\n" " " | read wifi rssi; echo $wifi $rssi']], 1, function(widget, stdout)
-        --     widget.text = '📶 ' .. stdout
-        -- end)
+        wifi_widget = awful.widget.watch("sh -c \"nmcli device wifi show | head -1 | cut -d ' ' -f2\"", 1, function(widget, stdout)
+            widget.text = '📶 ' .. stdout
+        end)
 
         -- rs3_widget = awful.widget.watch('rs_player_count.py rs3', 7, function(widget, stdout)
         --     widget.text = ' ' .. stdout
