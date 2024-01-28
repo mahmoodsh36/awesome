@@ -515,7 +515,7 @@ awful.screen.connect_for_each_screen(function(s)
         onscreen_keyboard_button:buttons(gears.table.join(
             onscreen_keyboard_button:buttons(),
             awful.button({}, 1, nil, function ()
-                    awful.spawn('onboard')
+                awful.spawn('onboard')
             end)
         ))
 
