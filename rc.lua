@@ -345,12 +345,12 @@ function create_topbar(s)
         create_separator(),
         memory_widget,
         create_separator(),
-        menubutton,
-        create_separator(),
-        restart_networkmanager_button,
-        create_separator(),
-        onscreen_keyboard_button,
-        create_separator(),
+        -- menubutton,
+        -- create_separator(),
+        -- restart_networkmanager_button,
+        -- create_separator(),
+        -- onscreen_keyboard_button,
+        -- create_separator(),
         keyboard_layout_widget,
         create_separator(),
         wifi_widget,
@@ -398,30 +398,30 @@ function create_topbar(s)
 end
 
 awful.screen.connect_for_each_screen(function(s)
-        -- Wallpaper
+        -- wallpaper
         -- set_wallpaper(s)
 
         -- Each screen has its own tag table.
         awful.tag({ "1", "2", "3", "4", "5", }, s, awful.layout.layouts[1])
 
-        -- Create a promptbox for each screen
+        -- create a promptbox for each screen
         s.mypromptbox = awful.widget.prompt()
-        -- Create an imagebox widget which will contain an icon indicating which layout we're using.
-        -- We need one layoutbox per screen.
+        -- create an imagebox widget which will contain an icon indicating which layout we're using.
+        -- we need one layoutbox per screen.
         s.mylayoutbox = awful.widget.layoutbox(s)
         s.mylayoutbox:buttons(gears.table.join(
             awful.button({ }, 1, function () awful.layout.inc( 1) end),
             awful.button({ }, 3, function () awful.layout.inc(-1) end),
             awful.button({ }, 4, function () awful.layout.inc( 1) end),
             awful.button({ }, 5, function () awful.layout.inc(-1) end)))
-        -- Create a taglist widget
+        -- create a taglist widget
         s.mytaglist = awful.widget.taglist {
             screen  = s,
             filter  = awful.widget.taglist.filter.all,
             buttons = taglist_buttons,
         }
 
-        -- Create a tasklist widget
+        -- create a tasklist widget
         s.windowslist = awful.widget.tasklist {
             screen  = s,
             filter  = awful.widget.tasklist.filter.currenttags,
@@ -463,8 +463,6 @@ awful.screen.connect_for_each_screen(function(s)
 
         --toolkit = screen_toolkit:new(s)
 
-        -- Create the wibox
-
         keyboard_layout_widget = awful.widget.watch("sh -c \"setxkbmap -query | awk '/layout/ {print $2}'\"", 2,
         function(widget, stdout)
             widget.text = '⌨ ' .. stdout
@@ -481,62 +479,62 @@ awful.screen.connect_for_each_screen(function(s)
         --     widget.text = ' ' .. stdout
         -- end)
 
-        restart_networkmanager_button = wibox.widget {
-            {
-                widget = wibox.widget.textbox,
-                id = 'button',
-                text = ' restart networkmanager ',
-                align = 'center',
-            },
-            widget = wibox.container.background,
-            bg = beautiful.bg_focus,
-            fg = beautiful.fg_focus,
-            shape = gears.shape.rounded_rect
-        }
-        restart_networkmanager_button.button:buttons(gears.table.join(
-            restart_networkmanager_button:buttons(),
-            awful.button({}, 1, nil, function ()
-                    awful.spawn([[sh -c "sudo systemctl restart NetworkManager && notify-send 'restarted networkmanager'"]])
-            end)
-        ))
+        -- restart_networkmanager_button = wibox.widget {
+        --     {
+        --         widget = wibox.widget.textbox,
+        --         id = 'button',
+        --         text = ' restart networkmanager ',
+        --         align = 'center',
+        --     },
+        --     widget = wibox.container.background,
+        --     bg = beautiful.bg_focus,
+        --     fg = beautiful.fg_focus,
+        --     shape = gears.shape.rounded_rect
+        -- }
+        -- restart_networkmanager_button.button:buttons(gears.table.join(
+        --     restart_networkmanager_button:buttons(),
+        --     awful.button({}, 1, nil, function ()
+        --             awful.spawn([[sh -c "sudo systemctl restart NetworkManager && notify-send 'restarted networkmanager'"]])
+        --     end)
+        -- ))
 
-        onscreen_keyboard_button = wibox.widget {
-            {
-                widget = wibox.widget.textbox,
-                id = 'button',
-                text = 'keyboard',
-                align = 'center',
-            },
-            widget = wibox.container.background,
-            bg = beautiful.bg_focus,
-            fg = beautiful.fg_focus,
-            shape = gears.shape.rounded_rect
-        }
-        onscreen_keyboard_button:buttons(gears.table.join(
-            onscreen_keyboard_button:buttons(),
-            awful.button({}, 1, nil, function ()
-                awful.spawn('onboard')
-            end)
-        ))
+        -- onscreen_keyboard_button = wibox.widget {
+        --     {
+        --         widget = wibox.widget.textbox,
+        --         id = 'button',
+        --         text = 'keyboard',
+        --         align = 'center',
+        --     },
+        --     widget = wibox.container.background,
+        --     bg = beautiful.bg_focus,
+        --     fg = beautiful.fg_focus,
+        --     shape = gears.shape.rounded_rect
+        -- }
+        -- onscreen_keyboard_button:buttons(gears.table.join(
+        --     onscreen_keyboard_button:buttons(),
+        --     awful.button({}, 1, nil, function ()
+        --         awful.spawn('onboard')
+        --     end)
+        -- ))
 
-        menubutton = wibox.widget {
-          {
-            widget = wibox.widget.textbox,
-            id = 'button',
-            text = ' run app ',
-            align = 'center',
-          },
-          widget = wibox.container.background,
-          bg = beautiful.bg_focus,
-          fg = beautiful.fg_focus,
-          shape = gears.shape.rounded_rect,
-        }
-        menubutton.button:buttons(gears.table.join(
-        menubutton:buttons(),
-        awful.button({}, 1, nil, function ()
-          awful.spawn([[rofi -modi drun,run -show drun -font "DejaVu Sans 20" -show-icons]])
-        end)
-        ))
+        -- menubutton = wibox.widget {
+        --   {
+        --     widget = wibox.widget.textbox,
+        --     id = 'button',
+        --     text = ' run app ',
+        --     align = 'center',
+        --   },
+        --   widget = wibox.container.background,
+        --   bg = beautiful.bg_focus,
+        --   fg = beautiful.fg_focus,
+        --   shape = gears.shape.rounded_rect,
+        -- }
+        -- menubutton.button:buttons(gears.table.join(
+        -- menubutton:buttons(),
+        -- awful.button({}, 1, nil, function ()
+        --   awful.spawn([[rofi -modi drun,run -show drun -font "DejaVu Sans 20" -show-icons]])
+        -- end)
+        -- ))
 
         -- trackify_widget = awful.widget.watch('trackify_last_play.py', 10, function(widget, stdout)
         --     widget.text = stdout
@@ -545,15 +543,15 @@ awful.screen.connect_for_each_screen(function(s)
         create_topbar(s)
 end)
 
--- Mouse bindings
+-- mouse bindings
 root.buttons(gears.table.join(
-    --awful.button({ }, 1, function () mymainmenu:toggle() end),
-    -- awful.button({ }, 3, function () mymainmenu:hide() end),
+    -- awful.button({ }, 1, function () mymainmenu:toggle() end),
+    -- awful.button({ }, 3, function () mymainmenu:hide() end)
     --awful.button({ }, 4, awful.tag.viewnext),
     --awful.button({ }, 5, awful.tag.viewprev)
 ))
 
--- Key bindings
+-- key bindings
 globalkeys = gears.table.join(
     awful.key({ modkey,           }, "Left",   awful.tag.viewprev,
         {description = "view previous", group = "tag"}),
@@ -944,7 +942,7 @@ client.connect_signal("request::titlebars", function(c)
     }
 end)
 
--- Enable sloppy focus, so that focus follows mouse.
+-- enable sloppy focus, so that focus follows mouse.
 client.connect_signal("mouse::enter", function(c)
     c:emit_signal("request::activate", "mouse_enter", {raise = false})
 end)
