@@ -24,6 +24,6 @@ function update()
        end
    )
 end
-update()
+-- update()
 
 return volume_widget
