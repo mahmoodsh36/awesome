@@ -24,6 +24,6 @@ function update()
        end
    )
 end
--- update()
+-- update() -- causes some issues, dont enable
 
 return volume_widget

@@ -163,7 +163,7 @@ end
 spotify_widget = text_button:new(
   'song here',
   function()
-    awful.spawn('spotify_lyrics.sh')
+    awful.spawn('mpv_lyrics.sh')
   end
 )
 
