@@ -160,23 +160,23 @@ function create_separator()
   }
 end
 
-spotify_widget = text_button:new(
+mpv_widget = text_button:new(
   'song here',
   function()
     awful.spawn('mpv_lyrics.sh')
   end
 )
 
-spotify_widget_timer = gears.timer {
+mpv_widget_timer = gears.timer {
   timeout     = 0.15,
   call_now    = true,
   autostart   = true,
   single_shot = false,
   callback = function()
     awful.spawn.easy_async_with_shell(
-      [[name=$(echo "{ \"command\": [\"get_property\", \"metadata\"] }" | socat - /tmp/mpv_socket | jq -j ".data | .title + \" - \" + .artist + \" \" + .track + \" \" + .disc"); subtitles=$(echo '{ "command": ["get_property", "sub-text"] }' | socat - /tmp/mpv_socket | jq -j '.data?'); echo -n "$name $subtitles"]],
+      'current_mpv_track_more.sh',
       function(out)
-        spotify_widget:change_text(' ' .. out)
+        mpv_widget:change_text(' ' .. out)
       end
     )
   end
@@ -295,7 +295,7 @@ function create_topbar(s)
         s.mytaglist,
         s.mypromptbox,
         create_separator(),
-        spotify_widget,
+        mpv_widget,
       },
       {
         layout = wibox.layout.fixed.horizontal,
