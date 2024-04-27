@@ -878,7 +878,6 @@ awful.rules.rules = {
                  }, properties = { titlebars_enabled = true }
     },
 
-
     --{ rule_any = { name = { "win.*", }, }, properties = {focusable = false, ontop = true, titlebars_enabled = false} },
 
     -- Set Firefox to always map on the tag named "2" on screen 1.

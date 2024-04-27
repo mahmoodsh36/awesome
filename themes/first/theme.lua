@@ -9,8 +9,8 @@ local themes_path = gfs.get_themes_dir()
 local theme = {}
 
 theme.font          = "inconsolata 10"
-theme.bg_normal     = "#222222"
-theme.bg_focus      = "#8f4500"
+theme.bg_normal     = "#222222aa"
+theme.bg_focus      = "#8f4500aa"
 theme.bg_urgent     = "#ff0000"
 theme.bg_minimize   = "#000000"
 theme.bg_systray    = theme.bg_normal
